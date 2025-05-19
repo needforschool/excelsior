@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "@excelsior/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.483.0",
     "nuxt": "^3.16.0",
+    "pinia": "^2.1.7",
     "reka-ui": "^2.1.0",
     "shadcn-nuxt": "1.0.3",
     "tailwind-merge": "^3.0.2",
@@ -23,6 +24,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^6.13.2"
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@pinia/nuxt": "^0.5.1"
   }
 }

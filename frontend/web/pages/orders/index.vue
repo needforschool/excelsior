@@ -29,25 +29,43 @@
       </div>
       
       <div class="flex gap-3">
-        <Select v-model="statusFilter" class="w-40">
-          <option value="all">Tous les statuts</option>
-          <option value="en cours">En cours</option>
-          <option value="terminé">Terminé</option>
-          <option value="annulé">Annulé</option>
+        <!-- Filtre par statut -->
+        <Select v-model="statusFilter">
+          <SelectTrigger class="w-40">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="en cours">En cours</SelectItem>
+            <SelectItem value="terminé">Terminé</SelectItem>
+            <SelectItem value="annulé">Annulé</SelectItem>
+          </SelectContent>
         </Select>
         
-        <Select v-model="serviceFilter" class="w-48">
-          <option value="all">Tous les services</option>
-          <option value="transport">Transport</option>
-          <option value="nettoyage">Nettoyage</option>
-          <option value="déménagement">Déménagement</option>
-          <option value="dépannage">Dépannage</option>
-          <option value="garde enfant">Garde d'enfants</option>
+        <!-- Filtre par service -->
+        <Select v-model="serviceFilter">
+          <SelectTrigger class="w-48">
+            <SelectValue placeholder="Type de service" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les services</SelectItem>
+            <SelectItem value="transport">Transport</SelectItem>
+            <SelectItem value="nettoyage">Nettoyage</SelectItem>
+            <SelectItem value="déménagement">Déménagement</SelectItem>
+            <SelectItem value="dépannage">Dépannage</SelectItem>
+            <SelectItem value="garde enfant">Garde d'enfants</SelectItem>
+          </SelectContent>
         </Select>
         
-        <Select v-model="sortOrder" class="w-48">
-          <option value="newest">Plus récents d'abord</option>
-          <option value="oldest">Plus anciens d'abord</option>
+        <!-- Filtre par ordre de tri -->
+        <Select v-model="sortOrder">
+          <SelectTrigger class="w-48">
+            <SelectValue placeholder="Tri" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Plus récents d'abord</SelectItem>
+            <SelectItem value="oldest">Plus anciens d'abord</SelectItem>
+          </SelectContent>
         </Select>
       </div>
     </div>
@@ -217,7 +235,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
 import { useOrder } from '~/composables/order'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useAuthStore } from '~/stores/auth'

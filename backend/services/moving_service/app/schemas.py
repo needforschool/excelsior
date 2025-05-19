@@ -7,6 +7,7 @@ class MovingBase(BaseModel):
     order_id: int
     team_size: int = Field(..., gt=0)
     truck_size: str
+    id_provider: Optional[int] = None
 
     @validator('truck_size')
     def validate_truck_size(cls, v):
@@ -45,4 +46,4 @@ class MovingResponse(MovingBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated from orm_mode which is deprecated

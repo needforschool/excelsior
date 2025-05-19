@@ -23,6 +23,7 @@ def create_provider(db: Session, provider: ProviderCreate):
     db_provider = Provider(
         name=provider.name,
         email=provider.email,
+        type=provider.type,
         latitude=provider.latitude,
         longitude=provider.longitude,
         availability=True
@@ -51,3 +52,11 @@ def delete_provider(db: Session, provider_id: int):
         db.commit()
         return True
     return False
+
+def get_providers_by_type(db: Session, provider_type: str, skip: int = 0, limit: int = 100):
+    """Récupère une liste de prestataires par type avec pagination"""
+    return db.query(Provider).filter(Provider.type == provider_type).offset(skip).limit(limit).all()
+
+def get_available_providers_by_type(db: Session, provider_type: str, skip: int = 0, limit: int = 100):
+    """Récupère une liste de prestataires disponibles par type"""
+    return db.query(Provider).filter(Provider.type == provider_type, Provider.availability == True).offset(skip).limit(limit).all()

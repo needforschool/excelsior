@@ -5,10 +5,9 @@ from app.database import Base
 
 class Moving(Base):
     __tablename__ = "movings"
-    
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, nullable=False)
-    id_provider = Column(Integer, nullable=False)
+    id_provider = Column(Integer, nullable=True)  
     team_size = Column(Integer, nullable=False)
     truck_size = Column(String, nullable=False)  # 'petit', 'moyen', 'grand'
     status = Column(String, default='préparation')  # 'préparation', 'en cours', 'terminé', 'annulé'

@@ -20,6 +20,7 @@ def create_moving(db: Session, moving: MovingCreate):
         order_id=moving.order_id,
         team_size=moving.team_size,
         truck_size=moving.truck_size,
+        id_provider=moving.id_provider,
         status="préparation"
     )
     db.add(db_moving)

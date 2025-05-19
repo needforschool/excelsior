@@ -31,8 +31,16 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 async def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
-    if not authorization or not authorization.startswith("Bearer "):
-        print("Authorization header missing or invalid")  # Log
+    if not authorization:
+        print("Authorization header missing")  # Log
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header is required",
+        )
+    
+    # Vérification insensible à la casse
+    if not authorization.lower().startswith("bearer "):
+        print("Authorization header invalid format")  # Log
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization header must start with 'Bearer '",
@@ -87,14 +95,14 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = get_users(db, skip=skip, limit=limit)
     return users
 
+@router.get("/users/me", response_model=UserResponse)
+def read_current_user(current_user: UserResponse = Depends(get_current_user)):
+    """Get current authenticated user"""
+    return current_user
+
 @router.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     return db_user
-
-@router.get("/users/me", response_model=UserResponse)
-def read_current_user(current_user: UserResponse = Depends(get_current_user)):
-    """Get current authenticated user"""
-    return current_user

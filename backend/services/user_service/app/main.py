@@ -18,7 +18,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    root_path="/user_service"
+    # root_path="/user_service"
 )
 
 # Création des tables dans la base de données

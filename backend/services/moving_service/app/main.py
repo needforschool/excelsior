@@ -12,7 +12,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    root_path="/moving_service"
+    # root_path="/moving_service"
     )
 
 # Configuration CORS

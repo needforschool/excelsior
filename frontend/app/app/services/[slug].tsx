@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import {router, useLocalSearchParams} from 'expo-router';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Card, Title, Paragraph } from 'react-native-paper';
 
@@ -7,7 +7,7 @@ export const screenOptions = {
 };
 
 const mockProviders = {
-    colis: [
+    movings: [
         { id: '1', name: 'ExpressGo', description: 'Livraison express en 2h dans toute la ville.' },
         { id: '2', name: 'RapidBox', description: 'Livraison de colis sécurisée avec suivi en temps réel.' },
     ],
@@ -16,10 +16,25 @@ const mockProviders = {
     ],
 };
 
+// fetch the correct api endpoint of the correct microservice
+const fetchProviders = async (slug: string) => {
+    const response = await fetch(`http://localhost:8080/${slug}`);
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+}
+
 export default function ServiceProvidersScreen() {
     const { slug } = useLocalSearchParams();
 
     const providers = mockProviders[slug as keyof typeof mockProviders] || [];
+    // const providers = fetchProviders(slug as string);
+
+    const handlePress = (id) => {
+        // redirect to /services/provider/[id]
+        router.push(`/services/provider/${id}`);
+    }
 
     return (
         <View style={styles.container}>
@@ -29,7 +44,7 @@ export default function ServiceProvidersScreen() {
                 data={providers}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <Card style={styles.card}>
+                    <Card style={styles.card} onPress={() => handlePress(item.id)}>
                         <Card.Content>
                             <Title>{item.name}</Title>
                             <Paragraph>{item.description}</Paragraph>

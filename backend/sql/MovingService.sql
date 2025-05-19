@@ -5,6 +5,7 @@ USE MovingService;
 
 CREATE TABLE movings (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    id_provider INT NOT NULL,
     order_id INT NOT NULL, -- Reference managed via API
     team_size INT NOT NULL,
     truck_size ENUM('petit', 'moyen', 'grand') NOT NULL,

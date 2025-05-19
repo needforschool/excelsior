@@ -16,7 +16,10 @@ import {
     Card,
     Text,
 } from 'react-native-paper';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { TabView, SceneMap, TabBar as RNTabBar } from 'react-native-tab-view';
+
+// 🍺 On cast TabBar en any pour récupérer tous les props sans erreur
+const TabBar: React.ComponentType<any> = RNTabBar as any;
 
 // --- Composants de chaque onglet -----------------
 const InformationsForm: React.FC = () => {
@@ -100,9 +103,12 @@ const PaymentsForm: React.FC = () => (
                         icon="delete"
                         onPress={() => {}}
                         compact
+                        children={null}
                     />
                 )}
-            />
+            >
+                {/* children vide */}
+            </Card.Title>
         </Card>
         <Button mode="outlined" icon="plus" onPress={() => {}} style={styles.button}>
             Ajouter un moyen de paiement
@@ -201,6 +207,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 24,
         backgroundColor: '#FFF',
+        marginTop: 15,
     },
     name: {
         marginTop: 12,
@@ -223,6 +230,7 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         padding: 16,
+        marginTop: 10,
     },
     input: {
         marginBottom: 12,

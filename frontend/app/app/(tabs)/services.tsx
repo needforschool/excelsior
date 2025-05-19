@@ -27,7 +27,7 @@ const mockServices: Service[] = [
         description:
             "Déménagement rapide de quelques meubles/cartons avec suivi live.",
         icon: 'sofa',
-        slug: 'demenagement',
+        slug: 'movings',
     },
     {
         id: '3',
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         borderRadius: 12,
         overflow: 'hidden',
+
     },
     iconContainer: {
         alignItems: 'center',

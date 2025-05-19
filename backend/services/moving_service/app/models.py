@@ -8,6 +8,7 @@ class Moving(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, nullable=False)
+    id_provider = Column(Integer, nullable=False)
     team_size = Column(Integer, nullable=False)
     truck_size = Column(String, nullable=False)  # 'petit', 'moyen', 'grand'
     status = Column(String, default='préparation')  # 'préparation', 'en cours', 'terminé', 'annulé'

@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { User } from '~/services/user'
+import type { User } from '~/services/user'
 
 const props = defineProps({
   user: {

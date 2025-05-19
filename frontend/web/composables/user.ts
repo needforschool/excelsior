@@ -1,6 +1,6 @@
 // Utilitaire pour gérer les appels d'API dans les composables
 import { useApi } from '~/lib/api'
-import { User } from '~/services/user'
+import { type User, useUserService } from '~/services/user'
 
 export const useUserApi = () => {
   const api = useApi()

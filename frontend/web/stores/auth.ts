@@ -1,6 +1,6 @@
 // Store pour gérer l'état d'authentification
 import { defineStore } from 'pinia'
-import { User } from '~/services/user'
+import { type User } from '~/services/user'
 
 interface AuthState {
   token: string | null

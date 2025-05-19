@@ -105,7 +105,7 @@ onMounted(() => {
   isRegistering.value = route.query.register === 'true'
   
   // Récupérer l'URL de redirection s'il y en a une
-  const redirect = route.query.redirect as string
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : undefined
   if (redirect) {
     redirectUrl.value = redirect
   }
@@ -131,7 +131,7 @@ const handleSubmit = async () => {
       form.value.name,
       form.value.email,
       form.value.password,
-      form.value.role as 'client' | 'prestataire'
+      form.value.role
     )
   } else {
     // Connexion

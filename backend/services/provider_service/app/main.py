@@ -12,7 +12,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    root_path="/provider_service"
+    # root_path="/provider_service"
 )
 # Configuration CORS
 app.add_middleware(

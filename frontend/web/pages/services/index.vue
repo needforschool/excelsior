@@ -60,9 +60,11 @@
           
           <div class="flex items-center justify-between">
             <p class="font-semibold">{{ formatPrice(service.price) }}</p>
-            <Button as="NuxtLink" :to="`/services/${service.id}`">
-              Commander
-            </Button>
+            <NuxtLink :to="`/services/${service.id}`">
+              <Button>
+                Commander
+              </Button>
+            </NuxtLink>
           </div>
         </div>
       </div>

@@ -196,7 +196,7 @@ async def read_current_user(request: Request):
         # Allow access without token
         return {"message": "Accessing user details without token is allowed for testing purposes."}
 
-@app.get("/users/{user_id}", tags=["users"])
+@app.get("/api/users/{user_id}", tags=["users"])
 async def read_user(request: Request, user_id: int):
     return await proxy_request(request, "user", f"users/{user_id}")
 

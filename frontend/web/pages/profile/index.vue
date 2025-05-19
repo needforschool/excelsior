@@ -144,10 +144,12 @@
             <div>
               <h3 class="font-medium">Changer le mot de passe</h3>
               <p class="text-sm text-muted-foreground">Mettez à jour votre mot de passe pour sécuriser votre compte</p>
-              <Button variant="outline" class="w-full mt-2" as="NuxtLink" to="/profile/password">
-                <LucideKey class="w-4 h-4 mr-2" />
-                Modifier le mot de passe
-              </Button>
+              <NuxtLink to="/profile/password">
+                <Button variant="outline" class="w-full mt-2">
+                  <LucideKey class="w-4 h-4 mr-2" />
+                  Modifier le mot de passe
+                </Button>
+              </NuxtLink>
             </div>
             
             <div>

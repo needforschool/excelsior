@@ -68,16 +68,18 @@
       </div>
       
       <!-- Actions -->
-      <div class="flex flex-col justify-center gap-3 sm:flex-row">
-        <Button as="NuxtLink" to="/orders" variant="default">
+      <NuxtLink to="/orders">
+        <Button>
           <LucideClipboard class="w-4 h-4 mr-2" />
           Voir mes commandes
         </Button>
-        <Button as="NuxtLink" to="/services" variant="outline">
+      </NuxtLink>
+      <NuxtLink to="/services">
+        <Button variant="outline">
           <LucideShoppingBag class="w-4 h-4 mr-2" />
           Commander un autre service
         </Button>
-      </div>
+      </NuxtLink>
     </div>
   </div>
 </template>

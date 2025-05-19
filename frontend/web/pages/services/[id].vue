@@ -1,12 +1,13 @@
 <template>
   <div class="container px-4 py-6 mx-auto">
-    <!-- En-tête avec navigation et titre -->
-    <div class="mb-6">
-      <Button variant="ghost" class="mb-4" as="NuxtLink" to="/services">
-        <LucideArrowLeft class="w-4 h-4 mr-2" />
-        Retour aux services
-      </Button>
+    <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">{{ service.name }}</h1>
+      <NuxtLink to="/services">
+        <Button variant="outline">
+          <LucideArrowLeft class="w-4 h-4 mr-2" />
+          Retour aux services
+        </Button>
+      </NuxtLink>
     </div>
     
     <!-- Contenu principal -->

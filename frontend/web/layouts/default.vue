@@ -9,22 +9,28 @@
         
         <nav class="hidden space-x-6 md:flex">
           <NuxtLink to="/services" class="text-foreground hover:text-primary">Services</NuxtLink>
-          <NuxtLink to="/dashboard" class="text-foreground hover:text-primary">Dashboard</NuxtLink>
-          <NuxtLink to="/orders" class="text-foreground hover:text-primary">Mes commandes</NuxtLink>
+          <NuxtLink v-if="authStore.isAuthenticated" to="/dashboard" class="text-foreground hover:text-primary">Dashboard</NuxtLink>
+          <NuxtLink v-if="authStore.isAuthenticated" to="/orders" class="text-foreground hover:text-primary">Mes commandes</NuxtLink>
           <NuxtLink to="/support" class="text-foreground hover:text-primary">Support</NuxtLink>
         </nav>
         
         <div class="flex items-center gap-4">
-          <Button v-if="!isAuthenticated" variant="outline" as="NuxtLink" to="/auth">Se connecter</Button>
-          <Button v-if="!isAuthenticated" as="NuxtLink" to="/auth?register=true">S'inscrire</Button>
+          <!-- Navigation buttons for unauthenticated users -->
+          <NuxtLink v-if="!authStore.isAuthenticated" to="/auth">
+            <Button variant="outline">Se connecter</Button>
+          </NuxtLink>
+          <NuxtLink v-if="!authStore.isAuthenticated" to="/auth?register=true">
+            <Button>S'inscrire</Button>
+          </NuxtLink>
           
+          <!-- User profile dropdown -->
           <div v-else class="relative">
             <Button 
               variant="ghost" 
               @click="menuOpen = !menuOpen" 
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 menuButton"
             >
-              <div class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-full bg-primary/10">
+              <div v-if="authStore.user" class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-full bg-primary/10">
                 {{ userInitials }}
               </div>
             </Button>
@@ -69,11 +75,11 @@
       <div v-if="mobileMenuOpen" class="border-t md:hidden border-border">
         <div class="container px-4 py-3 mx-auto space-y-1">
           <NuxtLink to="/services" class="block px-3 py-2 rounded-md hover:bg-muted">Services</NuxtLink>
-          <NuxtLink to="/dashboard" class="block px-3 py-2 rounded-md hover:bg-muted">Dashboard</NuxtLink>
-          <NuxtLink to="/orders" class="block px-3 py-2 rounded-md hover:bg-muted">Mes commandes</NuxtLink>
+          <NuxtLink v-if="authStore.isAuthenticated" to="/dashboard" class="block px-3 py-2 rounded-md hover:bg-muted">Dashboard</NuxtLink>
+          <NuxtLink v-if="authStore.isAuthenticated" to="/orders" class="block px-3 py-2 rounded-md hover:bg-muted">Mes commandes</NuxtLink>
           <NuxtLink to="/support" class="block px-3 py-2 rounded-md hover:bg-muted">Support</NuxtLink>
           
-          <div v-if="isAuthenticated" class="pt-2 mt-2 border-t border-border">
+          <div v-if="authStore.isAuthenticated" class="pt-2 mt-2 border-t border-border">
             <NuxtLink to="/profile" class="block px-3 py-2 rounded-md hover:bg-muted">Mon profil</NuxtLink>
             <button @click="logout" class="block w-full px-3 py-2 text-left rounded-md text-destructive hover:bg-muted">
               Se déconnecter
@@ -171,7 +177,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { 
   LucideTruck,
@@ -188,32 +195,47 @@ import {
   LucidePhone,
   LucideMail
 } from 'lucide-vue-next'
+import { useAuthStore } from '~/stores/auth'
 
-// État d'authentification (simulé)
-const isAuthenticated = ref(true) // Modifier à false pour tester l'état non authentifié
+const router = useRouter()
+const authStore = useAuthStore()
+
 const menuOpen = ref(false)
 const mobileMenuOpen = ref(false)
 
-// Informations utilisateur simulées
-const user = ref({
-  firstName: 'Jean',
-  lastName: 'Dupont'
+// Calcul des initiales de l'utilisateur avec vérification supplémentaire
+const userInitials = computed(() => {
+  // Vérifiez si l'utilisateur et son nom existent
+  if (!authStore.user || !authStore.user.name) return ''
+  
+  const nameParts = authStore.user.name.split(' ')
+  const firstInitial = nameParts[0] ? nameParts[0][0] : ''
+  const lastNamePart = nameParts[1]
+  const lastInitial = lastNamePart ? lastNamePart[0] : ''
+  
+  return (firstInitial + lastInitial).toUpperCase()
 })
 
-// Calcul des initiales de l'utilisateur
-const userInitials = computed(() => {
-  const firstInitial = user.value.firstName ? user.value.firstName[0] : ''
-  const lastInitial = user.value.lastName ? user.value.lastName[0] : ''
-  return (firstInitial + lastInitial).toUpperCase()
+// Fermer le menu déroulant quand on clique n'importe où ailleurs
+const handleClickOutside = (event) => {
+  if (menuOpen.value && !event.target.closest('.menuButton')) {
+    menuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // Fonction de déconnexion
 const logout = () => {
-  // Ici, vous implémenteriez la logique de déconnexion réelle
-  console.log('Déconnexion')
+  authStore.logout()
   menuOpen.value = false
   mobileMenuOpen.value = false
-  // Redirection vers la page d'accueil (à implémenter)
-  // navigateTo('/')
+  router.push('/')
 }
 </script>

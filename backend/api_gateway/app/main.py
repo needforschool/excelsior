@@ -180,7 +180,7 @@ async def proxy_request(request: Request, service: str, path: str):
 async def read_users(request: Request):
     return await proxy_request(request, "user", "users/")
 
-@app.get("/users/me", tags=["users"])
+@app.get("/api/users/me", tags=["users"])
 async def read_current_user(request: Request):
     token = request.headers.get("Authorization")
     if (token and token.startswith("Bearer ")):

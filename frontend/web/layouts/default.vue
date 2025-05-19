@@ -15,14 +15,20 @@
         </nav>
         
         <div class="flex items-center gap-4">
-          <Button v-if="!authStore.isAuthenticated" variant="outline" as="NuxtLink" to="/auth">Se connecter</Button>
-          <Button v-if="!authStore.isAuthenticated" as="NuxtLink" to="/auth?register=true">S'inscrire</Button>
+          <!-- Navigation buttons for unauthenticated users -->
+          <NuxtLink v-if="!authStore.isAuthenticated" to="/auth">
+            <Button variant="outline">Se connecter</Button>
+          </NuxtLink>
+          <NuxtLink v-if="!authStore.isAuthenticated" to="/auth?register=true">
+            <Button>S'inscrire</Button>
+          </NuxtLink>
           
+          <!-- User profile dropdown -->
           <div v-else class="relative">
             <Button 
               variant="ghost" 
               @click="menuOpen = !menuOpen" 
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 menuButton"
             >
               <div v-if="authStore.user" class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-full bg-primary/10">
                 {{ userInitials }}
@@ -197,12 +203,14 @@ const authStore = useAuthStore()
 const menuOpen = ref(false)
 const mobileMenuOpen = ref(false)
 
-// Calcul des initiales de l'utilisateur
+// Calcul des initiales de l'utilisateur avec vérification supplémentaire
 const userInitials = computed(() => {
-  if (!authStore.user) return ''
+  // Vérifiez si l'utilisateur et son nom existent
+  if (!authStore.user || !authStore.user.name) return ''
   
-  const firstInitial = authStore.user.name ? authStore.user.name.split(' ')[0][0] : ''
-  const lastNamePart = authStore.user.name.split(' ')[1]
+  const nameParts = authStore.user.name.split(' ')
+  const firstInitial = nameParts[0] ? nameParts[0][0] : ''
+  const lastNamePart = nameParts[1]
   const lastInitial = lastNamePart ? lastNamePart[0] : ''
   
   return (firstInitial + lastInitial).toUpperCase()

@@ -27,7 +27,7 @@ const mockServices: Service[] = [
         description:
             "Déménagement rapide de quelques meubles/cartons avec suivi live.",
         icon: 'sofa',
-        slug: 'movings',
+        slug: 'moving',
     },
     {
         id: '3',

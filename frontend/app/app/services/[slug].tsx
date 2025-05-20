@@ -6,30 +6,22 @@ export const screenOptions = {
     tabBarStyle: { display: 'none' }, // cache complètement la TabBar pour cette page
 };
 
-const mockProviders = {
-    movings: [
-        { id: '1', name: 'ExpressGo', description: 'Livraison express en 2h dans toute la ville.' },
-        { id: '2', name: 'RapidBox', description: 'Livraison de colis sécurisée avec suivi en temps réel.' },
-    ],
-    demenagement: [
-        { id: '1', name: 'MiniMove', description: 'Spécialiste des petits déménagements.' },
-    ],
-};
-
 // fetch the correct api endpoint of the correct microservice
 const fetchProviders = async (slug: string) => {
-    const response = await fetch(`http://localhost:8080/${slug}`);
+    const response = await fetch(`http://172.16.1.122:8080/api/providers/type/${slug}`);
+
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
+
     return response.json();
 }
 
 export default function ServiceProvidersScreen() {
     const { slug } = useLocalSearchParams();
 
-    const providers = mockProviders[slug as keyof typeof mockProviders] || [];
-    // const providers = fetchProviders(slug as string);
+    // const providers = mockProviders[slug as keyof typeof mockProviders] || [];
+    const providers = fetchProviders(slug as string);
 
     const handlePress = (id) => {
         // redirect to /services/provider/[id]
@@ -47,7 +39,8 @@ export default function ServiceProvidersScreen() {
                     <Card style={styles.card} onPress={() => handlePress(item.id)}>
                         <Card.Content>
                             <Title>{item.name}</Title>
-                            <Paragraph>{item.description}</Paragraph>
+                            <Paragraph>{item.email}</Paragraph>
+
                         </Card.Content>
                     </Card>
                 )}

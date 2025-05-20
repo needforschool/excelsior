@@ -141,9 +141,9 @@ async def proxy_request(request: Request, service: str, path: str):
         raise HTTPException(status_code=404, detail=f"Service {service} non trouvé")
         
     auth_header = request.headers.get("Authorization")
-    if (auth_header and auth_header.startswith("Bearer ")):
-        token = auth_header.split(" ")[1]
-        await verify_token(token)
+    # if (auth_header and auth_header.startswith("Bearer ")):
+    #     token = auth_header.split(" ")[1]
+    #     await verify_token(token)
 
     service_url = SERVICE_URLS[service]
     target_url = f"{service_url}/{path}"
@@ -314,9 +314,17 @@ async def create_provider(request: Request):
 async def read_providers(request: Request):
     return await proxy_request(request, "provider", "providers/")
 
+@app.get("/api/providers/{provider_id}", tags=["providers"])
+async def read_provider(request: Request, provider_id: int):
+    return await proxy_request(request, "provider", f"providers/{provider_id}")
+
 @app.get("/api/providers/available/", tags=["providers"])
 async def read_available_providers(request: Request):
     return await proxy_request(request, "provider", "providers/available/")
+
+@app.get("/api/providers/type/{type}", tags=["providers"])
+async def read_provider_by_type(request: Request, type: str):
+    return await proxy_request(request, "provider", f"providers/type/{type}")
 
 # Routes pour les services de transport
 @app.post("/api/transports/", tags=["transports"])

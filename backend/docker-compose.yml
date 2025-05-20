@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  fixtures_runner:
+    build:
+      context: ./fixtures
+    depends_on:
+      - user_db
+      - provider_db
+      - user_service
+      - provider_service
+    # (et tous les autres services si vous seed leurs tables)
+    environment:
+      USER_DB_URL: "postgresql://postgres:postgres@user_db:5432/user_service"
+      PROVIDER_DB_URL: "postgresql://postgres:postgres@provider_db:5432/provider_service"
+      # pas de volumes supplémentaires
   api_gateway:
     build: ./api_gateway
     ports:

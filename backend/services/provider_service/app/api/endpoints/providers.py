@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Literal
+import asyncio
 
 from app.schemas import ProviderCreate, ProviderResponse, ProviderUpdate
 from app.crud import (
@@ -8,6 +9,7 @@ from app.crud import (
     update_provider, delete_provider, get_providers_by_type, get_available_providers_by_type
 )
 from app.database import get_db
+from app.api.users_client import fetch_user
 
 router = APIRouter()
 
@@ -19,9 +21,24 @@ def create_new_provider(provider: ProviderCreate, db: Session = Depends(get_db))
     return create_provider(db=db, provider=provider)
 
 @router.get("/providers/", response_model=List[ProviderResponse])
-def read_providers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+async def read_providers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     providers = get_providers(db, skip=skip, limit=limit)
-    return providers
+    results = []
+    for prov in providers:
+        user_data = await fetch_user(prov.id_user)
+        results.append(
+            ProviderResponse(
+                id=prov.id,
+                id_user=prov.id_user,
+                type=prov.type,
+                latitude=prov.latitude,
+                longitude=prov.longitude,
+                created_at=prov.created_at,    # <-- on fournit bien ces deux-là
+                updated_at=prov.updated_at,    #
+                user=user_data
+            )
+        )
+    return results
 
 @router.get("/providers/available/", response_model=List[ProviderResponse])
 def read_available_providers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -29,11 +46,22 @@ def read_available_providers(skip: int = 0, limit: int = 100, db: Session = Depe
     return providers
 
 @router.get("/providers/{provider_id}", response_model=ProviderResponse)
-def read_provider(provider_id: int, db: Session = Depends(get_db)):
-    db_provider = get_provider(db, provider_id=provider_id)
-    if db_provider is None:
+async def read_provider(provider_id: int, db: Session = Depends(get_db)):
+    prov = get_provider(db, provider_id=provider_id)
+    if not prov:
         raise HTTPException(status_code=404, detail="Prestataire non trouvé")
-    return db_provider
+    user_data = await fetch_user(prov.id_user)
+    return ProviderResponse(
+        id=prov.id,
+        id_user=prov.id_user,
+        type=prov.type,
+        latitude=prov.latitude,
+        longitude=prov.longitude,
+        created_at=prov.created_at,
+        updated_at=prov.updated_at,
+        user=user_data
+    )
+
 
 @router.patch("/providers/{provider_id}", response_model=ProviderResponse)
 def update_provider_info(provider_id: int, provider_data: ProviderUpdate, db: Session = Depends(get_db)):
@@ -49,15 +77,39 @@ def delete_provider_endpoint(provider_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Prestataire non trouvé")
     return {"detail": "Prestataire supprimé avec succès"}
 
-@router.get("/providers/type/{provider_type}", response_model=List[ProviderResponse])
-def read_providers_by_type(
-    provider_type: Literal['transport', 'cleaning', 'repair', 'childcare', 'moving'], 
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db)
+@router.get(
+    "/providers/type/{provider_type}",
+    response_model=List[ProviderResponse],
+)
+async def read_providers_by_type(
+        provider_type: Literal['transport', 'cleaning', 'repair', 'childcare', 'moving'],
+        skip: int = 0,
+        limit: int = 100,
+        db: Session = Depends(get_db)
 ):
-    providers = get_providers_by_type(db, provider_type=provider_type, skip=skip, limit=limit)
-    return providers
+    # 1) Récupère les providers filtres directement en ORM
+    providers = get_providers_by_type(
+        db, provider_type=provider_type, skip=skip, limit=limit
+    )
+
+    # 2) Pour chaque provider, on va chercher l'user associé
+    #    en parallèle pour plus d'efficacité
+    async def enrich(prov):
+        user = await fetch_user(prov.id_user)
+        return ProviderResponse(
+            id=prov.id,
+            id_user=prov.id_user,
+            type=prov.type,
+            latitude=prov.latitude,
+            longitude=prov.longitude,
+            created_at=prov.created_at,
+            updated_at=prov.updated_at,
+            user=user
+        )
+
+    # Lance tous les enrichissements en même temps
+    results = await asyncio.gather(*(enrich(p) for p in providers))
+    return results
 
 @router.get("/providers/available/type/{provider_type}", response_model=List[ProviderResponse])
 def read_available_providers_by_type(

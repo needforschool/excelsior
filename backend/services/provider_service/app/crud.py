@@ -21,8 +21,6 @@ def get_available_providers(db: Session, skip: int = 0, limit: int = 100):
 def create_provider(db: Session, provider: ProviderCreate):
     """Crée un nouveau prestataire"""
     db_provider = Provider(
-        name=provider.name,
-        email=provider.email,
         type=provider.type,
         latitude=provider.latitude,
         longitude=provider.longitude,

@@ -1,57 +1,156 @@
-import {router, useLocalSearchParams} from 'expo-router';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import {
+    StyleSheet,
+    View,
+    FlatList,
+    ActivityIndicator,
+    Text,
+    Pressable,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card, Title, Paragraph, useTheme } from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
+import Constants from 'expo-constants';
 
-export const screenOptions = {
-    tabBarStyle: { display: 'none' }, // cache complètement la TabBar pour cette page
-};
+const apiUrl = Constants.expoConfig?.extra?.API_URL;
 
-// fetch the correct api endpoint of the correct microservice
-const fetchProviders = async (slug: string) => {
-    const response = await fetch(`http://172.16.1.122:8080/api/providers/type/${slug}`);
-
+async function fetchProviders(slug: string) {
+    const response = await fetch(`${apiUrl}/providers/type/${slug}`);
+    const data = await response.json();
     if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(data.detail || 'Erreur réseau');
     }
+    return data;
+}
 
-    return response.json();
+const slugToName = (slug: string) => {
+    const names: { [key: string]: string } = {
+        moving: 'Déménagement',
+        transport: 'Transport et Livraison',
+        cleaning: 'Nettoyage de véhicules',
+        repair: 'Dépannage automobile',
+        childcare: "Garde d'enfants",
+    };
+    return names[slug] || slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
 export default function ServiceProvidersScreen() {
-    const { slug } = useLocalSearchParams();
+    const theme = useTheme();
+    const { slug } = useLocalSearchParams<{ slug: string }>();
+    const [providers, setProviders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // const providers = mockProviders[slug as keyof typeof mockProviders] || [];
-    const providers = fetchProviders(slug as string);
+    useEffect(() => {
+        if (!slug) return;
+        (async () => {
+            try {
+                const data = await fetchProviders(slug);
+                setProviders(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [slug]);
 
-    const handlePress = (id) => {
-        // redirect to /services/provider/[id]
+    const handlePress = (id: string) => {
         router.push(`/services/provider/${id}`);
+    };
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+            </SafeAreaView>
+        );
+    }
+
+    if (error) {
+        return (
+            <SafeAreaView style={styles.centered}>
+                <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    Erreur : {error}
+                </Text>
+            </SafeAreaView>
+        );
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Prestataires pour : {slug}</Text>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.header}>
+                <Text style={[styles.title, { color: theme.colors.text }]}>
+                    Prestataires pour « {slugToName(slug)} »
+                </Text>
+            </View>
 
             <FlatList
                 data={providers}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.list}
                 renderItem={({ item }) => (
-                    <Card style={styles.card} onPress={() => handlePress(item.id)}>
-                        <Card.Content>
-                            <Title>{item.name}</Title>
-                            <Paragraph>{item.email}</Paragraph>
-
-                        </Card.Content>
-                    </Card>
+                    <Pressable
+                        onPress={() => handlePress(item.id)}
+                        style={({ pressed }) => [
+                            styles.cardContainer,
+                            pressed && { opacity: 0.8 },
+                        ]}
+                    >
+                        <Card elevation={4} style={styles.card}>
+                            <Card.Content>
+                                <Title style={{ color: theme.colors.primary }}>
+                                    {item.name}
+                                </Title>
+                                <Paragraph style={{ color: theme.colors.text }}>
+                                    {item.email}
+                                </Paragraph>
+                            </Card.Content>
+                        </Card>
+                    </Pressable>
                 )}
-                contentContainerStyle={{ gap: 12 }}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16 },
-    title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
-    card: { borderRadius: 8 },
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#F5F5F5',
+    },
+    header: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#FFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#DDD',
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: '700',
+    },
+    list: {
+        padding: 16,
+    },
+    cardContainer: {
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    card: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+    },
+    separator: {
+        height: 12,
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorText: {
+        fontSize: 16,
+    },
 });

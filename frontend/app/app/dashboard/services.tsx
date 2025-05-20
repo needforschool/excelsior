@@ -19,7 +19,7 @@ const mockServices: Service[] = [
         description:
             "Service express pour documents ou objets de valeur. Suivi en direct du coursier.",
         icon: 'truck-delivery',
-        slug: 'colis',
+        slug: 'transport',
     },
     {
         id: '2',
@@ -35,7 +35,7 @@ const mockServices: Service[] = [
         description:
             "Nettoyage voiture à domicile avec suivi de l’équipe et alertes.",
         icon: 'car-wash',
-        slug: 'nettoyage-vehicule',
+        slug: 'cleaning',
     },
     {
         id: '4',
@@ -43,7 +43,7 @@ const mockServices: Service[] = [
         description:
             "Intervention batterie/pneus ou remorquage, avec suivi GPS en temps réel.",
         icon: 'car-wrench',
-        slug: 'depannage',
+        slug: 'repair',
     },
     {
         id: '5',
@@ -51,7 +51,7 @@ const mockServices: Service[] = [
         description:
             "Service d’escorte enfants école/sport. Suivi de l’accompagnateur en temps réel.",
         icon: 'baby-face',
-        slug: 'garde-enfants',
+        slug: 'childcare',
     },
 ];
 

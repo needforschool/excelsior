@@ -1,12 +1,21 @@
-from pydantic import BaseModel, Field, validator, EmailStr
-from datetime import datetime
-from typing import Optional, List, Literal
+# app/schemas.py
 
-# ProviderService schemas
+from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional, Literal
+
+class UserInfo(BaseModel):
+    id: int
+    lastName: str
+    firstName: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
 class ProviderBase(BaseModel):
-    name: str
-    email: EmailStr
-    type: Literal['transport', 'cleaning', 'repair', 'childcare', 'moving']
+    id_user: int
+    type: Literal['transport','cleaning','repair','childcare','moving']
     latitude: float
     longitude: float
 
@@ -14,18 +23,15 @@ class ProviderCreate(ProviderBase):
     pass
 
 class ProviderUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    type: Optional[Literal['transport', 'cleaning', 'repair', 'childcare', 'moving']] = None
-    availability: Optional[bool] = None
+    type: Optional[Literal['transport','cleaning','repair','childcare','moving']] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
 class ProviderResponse(ProviderBase):
     id: int
-    availability: bool
     created_at: datetime
+    updated_at: datetime
+    user: UserInfo
 
     class Config:
-        orm_mode = True
         from_attributes = True

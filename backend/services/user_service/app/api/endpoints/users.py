@@ -102,7 +102,7 @@ def read_current_user(current_user: UserResponse = Depends(get_current_user)):
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = get_user(db, user_id=user_id)
-    if db_user is None:
+    user = get_user(db, user_id)
+    if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    return db_user
+    return user

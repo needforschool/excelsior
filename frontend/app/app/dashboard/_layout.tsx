@@ -1,5 +1,6 @@
-import { Tabs } from 'expo-router';
+// app/dashboard/_layout.tsx
 import React from 'react';
+import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -8,28 +9,30 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function TabLayout() {
+export default function DashboardLayout() {
     const colorScheme = useColorScheme();
-    const { tabIconDefault: inactiveTint } = Colors[colorScheme ?? 'light'];
+    const inactiveTint = Colors[colorScheme].tabIconDefault;
 
     return (
         <Tabs
+            initialRouteName="index"            // Écran par défaut quand tu ouvres /dashboard
             screenOptions={{
                 headerShown: false,
                 tabBarButton: HapticTab,
                 tabBarBackground: TabBarBackground,
-                tabBarActiveTintColor: '#317ac1',      // couleur d’accentuation fixe
-                tabBarInactiveTintColor: inactiveTint, // couleur inactive issue du thème
+                tabBarActiveTintColor: '#317ac1',
+                tabBarInactiveTintColor: inactiveTint,
                 tabBarStyle: Platform.select({
                     ios: { position: 'absolute' },
                     default: {},
                 }),
             }}
         >
+            {/* Ordre garanti par la position de ces <Tabs.Screen> */}
             <Tabs.Screen
-                name="index"
+                name="index"                      // correspond à app/dashboard/index.tsx
                 options={{
-                    title: 'Home',
+                    title: 'Accueil',
                     tabBarIcon: ({ color }) => (
                         <MaterialCommunityIcons name="home" size={28} color={color} />
                     ),
@@ -37,7 +40,7 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="services"
+                name="services"                   // correspond à app/dashboard/services.tsx
                 options={{
                     title: 'Services',
                     tabBarIcon: ({ color }) => (
@@ -47,7 +50,7 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="orders"
+                name="orders"                     // correspond à app/dashboard/orders.tsx
                 options={{
                     title: 'Commandes',
                     tabBarIcon: ({ color }) => (
@@ -57,15 +60,11 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="profile"
+                name="profile"                    // correspond à app/dashboard/profile.tsx
                 options={{
                     title: 'Profil',
                     tabBarIcon: ({ color }) => (
-                        <MaterialCommunityIcons
-                            name="account"  // <- nouvelle icône profil
-                            size={28}
-                            color={color}
-                        />
+                        <MaterialCommunityIcons name="account" size={28} color={color} />
                     ),
                 }}
             />

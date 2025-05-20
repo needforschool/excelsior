@@ -1,5 +1,8 @@
 {
   "expo": {
+    "extra": {
+      "API_URL": "https://3b66-2a01-e0a-1f6-b290-28e2-5796-337f-695c.ngrok-free.app/api"
+    },
     "name": "app",
     "slug": "app",
     "version": "1.0.0",

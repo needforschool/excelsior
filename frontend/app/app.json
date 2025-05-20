@@ -1,11 +1,14 @@
 {
   "expo": {
+    "extra": {
+      "API_URL": "https://a55e-2a01-e0a-1f6-b290-99b8-1a3f-1ea2-465a.ngrok-free.app",
+    },
     "name": "app",
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -15,7 +18,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",

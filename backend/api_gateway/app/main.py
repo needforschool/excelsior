@@ -302,9 +302,17 @@ async def create_provider(request: Request):
 async def read_providers(request: Request):
     return await proxy_request(request, "provider", "providers/")
 
+@app.get("/providers/{provider_id}", tags=["providers"])
+async def read_provider(request: Request, provider_id: int):
+    return await proxy_request(request, "provider", f"providers/{provider_id}")
+
 @app.get("/providers/available/", tags=["providers"])
 async def read_available_providers(request: Request):
     return await proxy_request(request, "provider", "providers/available/")
+
+@app.get("/providers/type/{type}", tags=["providers"])
+async def read_provider_by_type(request: Request, type: str):
+    return await proxy_request(request, "provider", f"providers/type/{type}")
 
 # Routes pour les services de transport
 @app.post("/transports/", tags=["transports"])

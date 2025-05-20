@@ -21,13 +21,14 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 def create_user(db: Session, user: UserCreate):
     """Crée un nouvel utilisateur"""
     hashed_password = pwd_context.hash(user.password)
+    role = user.role if user.role in ['client', 'prestataire'] else 'client'
     db_user = User(
         firstName=user.firstName,
         lastName=user.lastName,
         email=user.email,
         phone=user.phone,
         password=hashed_password,
-        role=user.role
+        role=role
     )
     db.add(db_user)
     db.commit()

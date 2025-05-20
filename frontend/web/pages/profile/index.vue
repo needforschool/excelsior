@@ -2,32 +2,30 @@
   <div class="container px-4 py-6 mx-auto">
     <h1 class="mb-6 text-2xl font-bold">Mon profil</h1>
     
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div v-if="loading" class="flex justify-center py-12">
+      <LucideLoader class="w-8 h-8 animate-spin text-primary" />
+    </div>
+    
+    <div v-else-if="error" class="p-4 mb-6 rounded-md bg-destructive/10 text-destructive">
+      <p>{{ error }}</p>
+      <Button class="mt-2" variant="outline" @click="fetchCurrentUser">Réessayer</Button>
+    </div>
+    
+    <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <!-- Informations personnelles -->
       <div class="lg:col-span-2">
         <div class="p-6 rounded-lg shadow-sm bg-card">
           <h2 class="mb-4 text-xl font-semibold">Informations personnelles</h2>
           
           <form @submit.prevent="updateProfile" class="space-y-4">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <Label for="firstName">Prénom</Label>
-                <Input 
-                  id="firstName" 
-                  v-model="profileForm.firstName"
-                  placeholder="Votre prénom"
-                  class="mt-1"
-                />
-              </div>
-              <div>
-                <Label for="lastName">Nom</Label>
-                <Input 
-                  id="lastName" 
-                  v-model="profileForm.lastName"
-                  placeholder="Votre nom"
-                  class="mt-1"
-                />
-              </div>
+            <div>
+              <Label for="name">Nom complet</Label>
+              <Input 
+                id="name" 
+                v-model="profileForm.name"
+                placeholder="Votre nom complet"
+                class="mt-1"
+              />
             </div>
             
             <div>
@@ -132,7 +130,7 @@
               <LucidePencil class="w-4 h-4" />
             </Button>
           </div>
-          <h3 class="text-lg font-semibold">{{ profileForm.firstName }} {{ profileForm.lastName }}</h3>
+          <h3 class="text-lg font-semibold">{{ profileForm.name }}</h3>
           <p class="text-sm text-muted-foreground">Membre depuis {{ memberSince }}</p>
         </div>
         
@@ -237,12 +235,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/components/ui/toast'
 import { 
   LucideLoader, 
   LucidePencil, 
@@ -252,14 +251,23 @@ import {
   LucideTrash2, 
   LucidePlus 
 } from 'lucide-vue-next'
+import { useAuthStore } from '~/stores/auth'
+import { useUserService } from '~/services/user'
+
+const authStore = useAuthStore()
+const userService = useUserService()
+const { toast } = useToast()
+
+// État pour le chargement et l'erreur
+const loading = ref(false)
+const error = ref(null)
 
 // État du formulaire de profil
 const profileForm = ref({
-  firstName: 'Jean',
-  lastName: 'Dupont',
-  email: 'jean.dupont@exemple.com',
-  phone: '06 12 34 56 78',
-  address: '123 Rue de Paris\n75001 Paris',
+  name: '',
+  email: '',
+  phone: '',
+  address: '',
   avatar: null // URL de l'avatar, null si pas d'avatar
 })
 
@@ -278,34 +286,109 @@ const showDeleteAccountModal = ref(false)
 const deleteConfirmation = ref('')
 const isDeleting = ref(false)
 
+// Récupérer les données de l'utilisateur
+const fetchCurrentUser = async () => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    // Si l'utilisateur n'est pas déjà chargé dans le store, essayons de le charger
+    if (!authStore.user) {
+      await authStore.fetchCurrentUser()
+    }
+    
+    // Maintenant, vérifions si l'utilisateur est disponible
+    if (authStore.user) {
+      // Charger les données dans le formulaire
+      profileForm.value.name = authStore.user.name || ''
+      profileForm.value.email = authStore.user.email || ''
+      
+      // Ces données ne sont pas directement dans l'utilisateur, mais pourraient être ajoutées ultérieurement
+      profileForm.value.phone = authStore.user.phone || ''
+      profileForm.value.address = authStore.user.address || ''
+      profileForm.value.avatar = authStore.user.avatar || null
+    } else {
+      // L'utilisateur n'est pas disponible même après la tentative de chargement
+      error.value = "Impossible de charger les informations de l'utilisateur. Veuillez vous reconnecter."
+    }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement des données'
+  } finally {
+    loading.value = false
+  }
+}
+
 // Calcul des initiales de l'utilisateur
 const userInitials = computed(() => {
-  const firstInitial = profileForm.value.firstName ? profileForm.value.firstName[0] : ''
-  const lastInitial = profileForm.value.lastName ? profileForm.value.lastName[0] : ''
+  const name = profileForm.value.name || ''
+  if (!name) return ''
+  
+  const nameParts = name.split(' ')
+  const firstInitial = nameParts[0] ? nameParts[0][0] : ''
+  const lastInitial = nameParts.length > 1 ? nameParts[1][0] : ''
+  
   return (firstInitial + lastInitial).toUpperCase()
 })
 
 // Date d'inscription formatée
 const memberSince = computed(() => {
-  // Simulons une date d'inscription
-  const date = new Date('2023-05-15')
+  if (!authStore.user || !authStore.user.created_at) {
+    // Date par défaut si non disponible
+    return 'mai 2023'
+  }
+  
+  const date = new Date(authStore.user.created_at)
   return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
 })
 
 // Mise à jour du profil
 const updateProfile = async () => {
+  if (!authStore.user) {
+    toast({
+      title: 'Erreur',
+      description: 'Vous devez être connecté pour mettre à jour votre profil',
+      variant: 'destructive'
+    })
+    return
+  }
+  
   isUpdating.value = true
   
   try {
-    // Simulation d'un appel API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Préparation des données à envoyer
+    const userData = {
+      name: profileForm.value.name,
+      phone: profileForm.value.phone,
+      address: profileForm.value.address
+    }
     
-    // Mise à jour réussie
-    console.log('Profil mis à jour :', profileForm.value)
+    // Appel API pour mettre à jour le profil
+    const response = await userService.updateProfile(authStore.user.id, userData)
     
-    // Ici, vous feriez un appel API réel
+    if (response.error) {
+      toast({
+        title: 'Erreur',
+        description: response.error,
+        variant: 'destructive'
+      })
+    } else {
+      // Mise à jour du store d'authentification
+      authStore.setUser({
+        ...authStore.user,
+        ...userData
+      })
+      
+      toast({
+        title: 'Succès',
+        description: 'Votre profil a été mis à jour avec succès'
+      })
+    }
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil :', error)
+    toast({
+      title: 'Erreur',
+      description: error instanceof Error ? error.message : 'Une erreur est survenue',
+      variant: 'destructive'
+    })
   } finally {
     isUpdating.value = false
   }
@@ -316,15 +399,19 @@ const saveNotificationPreferences = async () => {
   isSavingNotifications.value = true
   
   try {
-    // Simulation d'un appel API
+    // Simulation d'un appel API pour enregistrer les préférences
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // Enregistrement réussi
-    console.log('Préférences de notifications enregistrées :', notifications.value)
-    
-    // Ici, vous feriez un appel API réel
+    toast({
+      title: 'Succès',
+      description: 'Vos préférences de notifications ont été enregistrées'
+    })
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement des préférences :', error)
+    toast({
+      title: 'Erreur',
+      description: 'Erreur lors de l\'enregistrement des préférences',
+      variant: 'destructive'
+    })
   } finally {
     isSavingNotifications.value = false
   }
@@ -332,22 +419,43 @@ const saveNotificationPreferences = async () => {
 
 // Suppression du compte
 const deleteAccount = async () => {
+  if (!authStore.user) {
+    toast({
+      title: 'Erreur',
+      description: 'Vous devez être connecté pour supprimer votre compte',
+      variant: 'destructive'
+    })
+    return
+  }
+  
   isDeleting.value = true
   
   try {
-    // Simulation d'un appel API
+    // Simulation d'un appel API pour supprimer le compte
     await new Promise(resolve => setTimeout(resolve, 1500))
     
-    // Suppression réussie
-    console.log('Compte supprimé')
+    toast({
+      title: 'Compte supprimé',
+      description: 'Votre compte a été supprimé avec succès'
+    })
     
-    // Redirection vers la page d'accueil
-    // navigateTo('/')
+    // Déconnexion et redirection vers la page d'accueil
+    authStore.logout()
+    navigateTo('/')
   } catch (error) {
-    console.error('Erreur lors de la suppression du compte :', error)
+    toast({
+      title: 'Erreur',
+      description: 'Erreur lors de la suppression du compte',
+      variant: 'destructive'
+    })
   } finally {
     isDeleting.value = false
     showDeleteAccountModal.value = false
   }
 }
+
+// Charger les données au montage du composant
+onMounted(() => {
+  fetchCurrentUser()
+})
 </script>

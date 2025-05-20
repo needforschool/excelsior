@@ -4,8 +4,10 @@ from typing import Optional, List
 
 # NotificationService schemas
 class NotificationBase(BaseModel):
-    user_id: int
+    id_sender: int
+    id_receiver: int
     message: str
+    is_read: bool = False
 
 class NotificationCreate(NotificationBase):
     pass
@@ -15,8 +17,9 @@ class NotificationUpdate(BaseModel):
 
 class NotificationResponse(NotificationBase):
     id: int
-    is_read: bool
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
+        from_attributes = True

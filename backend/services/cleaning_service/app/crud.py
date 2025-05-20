@@ -8,19 +8,24 @@ def get_cleaning(db: Session, cleaning_id: int):
 
 def get_cleaning_by_order(db: Session, order_id: int):
     """Récupère un service de nettoyage par l'ID de la commande associée"""
-    return db.query(Cleaning).filter(Cleaning.order_id == order_id).first()
+    return db.query(Cleaning).filter(Cleaning.id_order == order_id).first()
 
 def get_cleanings(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de services de nettoyage avec pagination"""
     return db.query(Cleaning).offset(skip).limit(limit).all()
 
+def get_provider_cleanings(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère une liste de services de nettoyage d'un prestataire"""
+    return db.query(Cleaning).filter(Cleaning.id_provider == provider_id).offset(skip).limit(limit).all()
+
 def create_cleaning(db: Session, cleaning: CleaningCreate):
     """Crée un nouveau service de nettoyage"""
     db_cleaning = Cleaning(
-        order_id=cleaning.order_id,
+        id_order=cleaning.id_order,
+        id_provider=cleaning.id_provider,
         location_type=cleaning.location_type,
         cleaning_duration=cleaning.cleaning_duration,
-        status="préparation"
+        availability=cleaning.availability
     )
     db.add(db_cleaning)
     db.commit()

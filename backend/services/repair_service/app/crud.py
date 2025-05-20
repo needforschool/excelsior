@@ -8,19 +8,24 @@ def get_repair(db: Session, repair_id: int):
 
 def get_repair_by_order(db: Session, order_id: int):
     """Récupère un service de dépannage par l'ID de la commande associée"""
-    return db.query(Repair).filter(Repair.order_id == order_id).first()
+    return db.query(Repair).filter(Repair.id_order == order_id).first()
 
 def get_repairs(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de services de dépannage avec pagination"""
     return db.query(Repair).offset(skip).limit(limit).all()
 
+def get_provider_repairs(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère une liste de services de dépannage d'un prestataire"""
+    return db.query(Repair).filter(Repair.id_provider == provider_id).offset(skip).limit(limit).all()
+
 def create_repair(db: Session, repair: RepairCreate):
     """Crée un nouveau service de dépannage"""
     db_repair = Repair(
-        order_id=repair.order_id,
+        id_order=repair.id_order,
+        id_provider=repair.id_provider,
         issue_type=repair.issue_type,
-        technician_name=repair.technician_name,
-        status="en route"
+        expertise_level=repair.expertise_level,
+        availability=repair.availability
     )
     db.add(db_repair)
     db.commit()

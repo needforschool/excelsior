@@ -1,6 +1,4 @@
-# app/schemas.py
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator, EmailStr
 from datetime import datetime
 from typing import Optional, Literal
 
@@ -34,4 +32,5 @@ class ProviderResponse(ProviderBase):
     user: UserInfo
 
     class Config:
+        orm_mode = True
         from_attributes = True

@@ -8,20 +8,25 @@ def get_moving(db: Session, moving_id: int):
 
 def get_moving_by_order(db: Session, order_id: int):
     """Récupère un déménagement par l'ID de la commande associée"""
-    return db.query(Moving).filter(Moving.order_id == order_id).first()
+    return db.query(Moving).filter(Moving.id_order == order_id).first()
 
 def get_movings(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de déménagements avec pagination"""
     return db.query(Moving).offset(skip).limit(limit).all()
 
+def get_provider_movings(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère une liste de déménagements d'un prestataire"""
+    return db.query(Moving).filter(Moving.id_provider == provider_id).offset(skip).limit(limit).all()
+
 def create_moving(db: Session, moving: MovingCreate):
     """Crée un nouveau déménagement"""
     db_moving = Moving(
-        order_id=moving.order_id,
+        id_order=moving.id_order,
+        id_provider=moving.id_provider,
+        activity_range=moving.activity_range,
         team_size=moving.team_size,
         truck_size=moving.truck_size,
-        id_provider=moving.id_provider,
-        status="préparation"
+        availability=moving.availability
     )
     db.add(db_moving)
     db.commit()

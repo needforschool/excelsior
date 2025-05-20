@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from app.database import Base
@@ -7,8 +7,10 @@ class Cleaning(Base):
     __tablename__ = "cleanings"
     
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, nullable=False)
-    location_type = Column(String, nullable=False)  # 'maison', 'bureau', 'véhicule'
+    id_order = Column(Integer,  nullable=False)
+    id_provider = Column(Integer,  nullable=False)
+    location_type = Column(String, nullable=False)
     cleaning_duration = Column(Integer, nullable=False)
-    status = Column(String, default='préparation')  # 'préparation', 'en cours', 'terminé', 'annulé'
+    availability = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

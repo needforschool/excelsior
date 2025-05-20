@@ -6,7 +6,7 @@ from sqlalchemy import Enum
 
 class Provider(Base):
     __tablename__ = "providers"
-
+    
     id = Column(Integer, primary_key=True, index=True)
     id_user = Column(Integer, nullable=False)
     type = Column(Enum('transport', 'cleaning', 'repair', 'childcare', 'moving', name='provider_type'), nullable=False)

@@ -23,8 +23,10 @@ def create_user(db: Session, user: UserCreate):
     hashed_password = pwd_context.hash(user.password)
     role = user.role if user.role in ['client', 'prestataire'] else 'client'
     db_user = User(
-        name=user.name,
+        firstName=user.firstName,
+        lastName=user.lastName,
         email=user.email,
+        phone=user.phone,
         password=hashed_password,
         role=role
     )

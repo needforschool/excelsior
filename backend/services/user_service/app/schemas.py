@@ -1,14 +1,12 @@
-# app/schemas.py
-
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import datetime
 from typing import Optional, List
 
-# Schémas de base
+# UserService schemas
 class UserBase(BaseModel):
     lastName: str
     firstName: str
-    phone: str
+    phone: Optional[str] = None
     email: EmailStr
     role: str
 

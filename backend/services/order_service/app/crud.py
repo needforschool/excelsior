@@ -12,13 +12,18 @@ def get_orders(db: Session, skip: int = 0, limit: int = 100):
 
 def get_user_orders(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     """Récupère les commandes d'un utilisateur spécifique"""
-    return db.query(Order).filter(Order.user_id == user_id).offset(skip).limit(limit).all()
+    return db.query(Order).filter(Order.id_user == user_id).offset(skip).limit(limit).all()
+
+def get_provider_orders(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère les commandes d'un prestataire spécifique"""
+    return db.query(Order).filter(Order.id_provider == provider_id).offset(skip).limit(limit).all()
 
 def create_order(db: Session, order: OrderCreate):
     """Crée une nouvelle commande"""
     db_order = Order(
-        user_id=order.user_id,
-        service_type=order.service_type,
+        id_user=order.id_user,
+        id_provider=order.id_provider,
+        status=order.status,
         latitude=order.latitude,
         longitude=order.longitude
     )

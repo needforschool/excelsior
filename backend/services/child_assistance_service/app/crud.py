@@ -8,20 +8,24 @@ def get_child_assistance(db: Session, child_assistance_id: int):
 
 def get_child_assistance_by_order(db: Session, order_id: int):
     """Récupère un service de garde d'enfant par l'ID de la commande associée"""
-    return db.query(ChildAssistance).filter(ChildAssistance.order_id == order_id).first()
+    return db.query(ChildAssistance).filter(ChildAssistance.id_order == order_id).first()
 
 def get_child_assistances(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de services de garde d'enfant avec pagination"""
     return db.query(ChildAssistance).offset(skip).limit(limit).all()
 
+def get_provider_child_assistances(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère une liste de services de garde d'enfant d'un prestataire"""
+    return db.query(ChildAssistance).filter(ChildAssistance.id_provider == provider_id).offset(skip).limit(limit).all()
+
 def create_child_assistance(db: Session, child_assistance: ChildAssistanceCreate):
     """Crée un nouveau service de garde d'enfant"""
     db_child_assistance = ChildAssistance(
-        order_id=child_assistance.order_id,
-        guardian_name=child_assistance.guardian_name,
+        id_order=child_assistance.id_order,
+        id_provider=child_assistance.id_provider,
         child_count=child_assistance.child_count,
-        destination=child_assistance.destination,
-        status="en cours"
+        experience=child_assistance.experience,
+        availability=child_assistance.availability
     )
     db.add(db_child_assistance)
     db.commit()

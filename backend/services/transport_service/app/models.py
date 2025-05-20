@@ -15,10 +15,11 @@ class Transport(Base):
     vehicle_type = Column(String, nullable=False)  # 'voiture', 'camion', 'moto'
     driver_name = Column(String, nullable=False)
     driver_contact = Column(String)
+    license_plate = Column(String, nullable=False)
     availability = Column(
         MutableDict.as_mutable(JSONB),
         default=MutableDict,        # valeur par défaut = {}
         nullable=False
     )
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

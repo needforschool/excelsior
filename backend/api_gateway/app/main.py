@@ -182,21 +182,9 @@ async def read_users(request: Request):
 
 @app.get("/users/me", tags=["users"])
 async def read_current_user(request: Request):
-    token = request.headers.get("Authorization")
-    if (token and token.startswith("Bearer ")):
-        token = token.split(" ")[1]
-        payload = await verify_token(token)
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
+    return await proxy_request(request, "user", "users/me")
 
-        # Fetch user details from the user service
-        return await proxy_request(request, "user", f"users/email/{email}")
-    else:
-        # Allow access without token
-        return {"message": "Accessing user details without token is allowed for testing purposes."}
-
-@app.get("/users/{user_id}", tags=["users"])
+@app.get("/api/users/{user_id}", tags=["users"])
 async def read_user(request: Request, user_id: int):
     return await proxy_request(request, "user", f"users/{user_id}")
 

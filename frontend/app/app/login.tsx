@@ -18,7 +18,7 @@ export default function LoginPage() {
         setError(null);
         console.log('login');
         try {
-            console.log('login 2');
+            console.log('login 2 ' + `${apiUrl}/token`);
             // 1) Utilisation de fetch brut, sans Authorization
             const res = await fetch(`${apiUrl}/token`, {
                 method: 'POST',

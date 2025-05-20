@@ -17,6 +17,7 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { useApi } from '@/lib/api';
+import { SecurityForm } from '@/components/forms/SecurityForm'
 
 // --- Forms ---------------------
 interface InfosProps {
@@ -74,19 +75,6 @@ const InformationsForm: React.FC<InfosProps> = (props) => {
     );
 };
 
-const SecurityForm: React.FC = () => (
-    <View style={styles.formContainer}>
-        <Text variant="bodyMedium" style={styles.text}>Changer le mot de passe pour sécuriser votre compte.</Text>
-        <Button mode="outlined" icon="lock-reset" style={styles.button}>
-            Modifier le mot de passe
-        </Button>
-        <Text variant="bodyMedium" style={[styles.text, styles.marginTop]}>Authentification à deux facteurs</Text>
-        <Button mode="outlined" icon="shield-key" style={styles.button}>
-            Configurer la 2FA
-        </Button>
-    </View>
-);
-
 const PaymentsForm: React.FC = () => (
     <View style={styles.formContainer}>
         <Button mode="outlined" icon="plus" style={styles.button}>
@@ -115,7 +103,7 @@ const NotificationsForm: React.FC<NotificationsProps> = ({ settings, onToggle })
     );
 };
 
-// ------------------------------
+
 export default function ProfileScreen() {
     const theme = useTheme();
     const router = useRouter();

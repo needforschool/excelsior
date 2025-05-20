@@ -4,8 +4,10 @@ from typing import Optional, List
 
 # UserService schemas
 class UserBase(BaseModel):
-    name: str
+    firstName: str
+    lastName: str
     email: EmailStr
+    phone: Optional[str] = None
     role: str
 
     @validator('role')
@@ -21,6 +23,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: int
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
@@ -31,4 +34,4 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: str | None = None 
+    email: str | None = None

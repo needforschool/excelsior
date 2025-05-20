@@ -4,10 +4,11 @@ from typing import Optional, List
 
 # TransportService schemas
 class TransportBase(BaseModel):
-    order_id: int
+    id_order: int
+    id_provider: int
     vehicle_type: str
-    driver_name: str
-    driver_contact: Optional[str] = None
+    license_plate: str
+    availability: bool = True
 
     @validator('vehicle_type')
     def validate_vehicle_type(cls, v):
@@ -20,22 +21,22 @@ class TransportCreate(TransportBase):
     pass
 
 class TransportUpdate(BaseModel):
-    driver_name: Optional[str] = None
-    driver_contact: Optional[str] = None
-    status: Optional[str] = None
+    vehicle_type: Optional[str] = None
+    license_plate: Optional[str] = None
+    availability: Optional[bool] = None
 
-    @validator('status')
-    def validate_status(cls, v):
+    @validator('vehicle_type')
+    def validate_vehicle_type(cls, v):
         if v is not None:
-            allowed_statuses = ['en route', 'livré', 'annulé']
-            if v not in allowed_statuses:
-                raise ValueError(f'Le statut doit être l\'un des suivants: {", ".join(allowed_statuses)}')
+            allowed_types = ['voiture', 'camion', 'moto']
+            if v not in allowed_types:
+                raise ValueError(f'Le type de véhicule doit être l\'un des suivants: {", ".join(allowed_types)}')
         return v
 
 class TransportResponse(TransportBase):
     id: int
-    status: str
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated from orm_mode which is deprecated

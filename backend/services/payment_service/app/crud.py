@@ -8,7 +8,11 @@ def get_payment(db: Session, payment_id: int):
 
 def get_payment_by_order(db: Session, order_id: int):
     """Récupère un paiement par l'ID de la commande associée"""
-    return db.query(Payment).filter(Payment.order_id == order_id).first()
+    return db.query(Payment).filter(Payment.id_order == order_id).first()
+
+def get_payment_by_user(db: Session, user_id: int):
+    """Récupère un paiement par l'ID de l'utilisateur associé"""
+    return db.query(Payment).filter(Payment.id_user == user_id).first()
 
 def get_payments(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de paiements avec pagination"""
@@ -17,9 +21,10 @@ def get_payments(db: Session, skip: int = 0, limit: int = 100):
 def create_payment(db: Session, payment: PaymentCreate):
     """Crée un nouveau paiement"""
     db_payment = Payment(
-        order_id=payment.order_id,
+        id_order=payment.id_order,
+        id_user=payment.id_user,
         amount=payment.amount,
-        payment_status="en attente"
+        payment_status=payment.payment_status
     )
     db.add(db_payment)
     db.commit()

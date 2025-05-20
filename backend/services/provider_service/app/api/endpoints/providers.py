@@ -4,7 +4,7 @@ from typing import List, Literal
 
 from app.schemas import ProviderCreate, ProviderResponse, ProviderUpdate
 from app.crud import (
-    get_provider, get_providers, get_available_providers, get_provider_by_email, create_provider, 
+    get_provider, get_providers, get_available_providers, get_provider_by_user_id, create_provider, 
     update_provider, delete_provider, get_providers_by_type, get_available_providers_by_type
 )
 from app.database import get_db
@@ -13,9 +13,9 @@ router = APIRouter()
 
 @router.post("/providers/", response_model=ProviderResponse)
 def create_new_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
-    db_provider = get_provider_by_email(db, email=provider.email)
+    db_provider = get_provider_by_user_id(db, id_user=provider.id_user)
     if db_provider:
-        raise HTTPException(status_code=400, detail="Email déjà enregistré")
+        raise HTTPException(status_code=400, detail="Provider déjà enregistré pour cet utilisateur")
     return create_provider(db=db, provider=provider)
 
 @router.get("/providers/", response_model=List[ProviderResponse])

@@ -10,16 +10,27 @@ def get_notifications(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de notifications avec pagination"""
     return db.query(Notification).offset(skip).limit(limit).all()
 
+def get_receiver_notifications(db: Session, receiver_id: int, skip: int = 0, limit: int = 100):
+    """Récupère les notifications d'un destinataire spécifique"""
+    return db.query(Notification).filter(Notification.id_receiver == receiver_id).offset(skip).limit(limit).all()
+
+def get_sender_notifications(db: Session, sender_id: int, skip: int = 0, limit: int = 100):
+    """Récupère les notifications d'un expéditeur spécifique"""
+    return db.query(Notification).filter(Notification.id_sender == sender_id).offset(skip).limit(limit).all()
+
 def get_user_notifications(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    """Récupère les notifications d'un utilisateur spécifique"""
-    return db.query(Notification).filter(Notification.user_id == user_id).offset(skip).limit(limit).all()
+    """Récupère toutes les notifications où l'utilisateur est soit expéditeur soit destinataire."""
+    return db.query(Notification).filter(
+        (Notification.id_sender == user_id) | (Notification.id_receiver == user_id)
+    ).offset(skip).limit(limit).all()
 
 def create_notification(db: Session, notification: NotificationCreate):
     """Crée une nouvelle notification"""
     db_notification = Notification(
-        user_id=notification.user_id,
+        id_sender=notification.id_sender,
+        id_receiver=notification.id_receiver,
         message=notification.message,
-        is_read=False
+        is_read=notification.is_read
     )
     db.add(db_notification)
     db.commit()

@@ -22,8 +22,10 @@ def create_user(db: Session, user: UserCreate):
     """Crée un nouvel utilisateur"""
     hashed_password = pwd_context.hash(user.password)
     db_user = User(
-        name=user.name,
+        firstName=user.firstName,
+        lastName=user.lastName,
         email=user.email,
+        phone=user.phone,
         password=hashed_password,
         role=user.role
     )

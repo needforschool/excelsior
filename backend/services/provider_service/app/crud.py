@@ -6,9 +6,9 @@ def get_provider(db: Session, provider_id: int):
     """Récupère un prestataire par son ID"""
     return db.query(Provider).filter(Provider.id == provider_id).first()
 
-def get_provider_by_email(db: Session, email: str):
-    """Récupère un prestataire par son email"""
-    return db.query(Provider).filter(Provider.email == email).first()
+def get_provider_by_user_id(db: Session, id_user: int):
+    """Récupère un prestataire par l'ID de l'utilisateur associé"""
+    return db.query(Provider).filter(Provider.id_user == id_user).first()
 
 def get_providers(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de prestataires avec pagination"""
@@ -21,12 +21,11 @@ def get_available_providers(db: Session, skip: int = 0, limit: int = 100):
 def create_provider(db: Session, provider: ProviderCreate):
     """Crée un nouveau prestataire"""
     db_provider = Provider(
-        name=provider.name,
-        email=provider.email,
+        id_user=provider.id_user,
         type=provider.type,
+        availability=provider.availability,
         latitude=provider.latitude,
-        longitude=provider.longitude,
-        availability=True
+        longitude=provider.longitude
     )
     db.add(db_provider)
     db.commit()

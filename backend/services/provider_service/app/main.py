@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.api.api import router
+from app.models import Provider
 
 # Création des tables dans la base de données
 Base.metadata.create_all(bind=engine)

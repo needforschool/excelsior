@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   api_gateway:
-    build: ./api_gateway
+    build: 
+      context: ./api_gateway
+      dockerfile: Dockerfile
     ports:
       - "8080:8000"
     volumes:
@@ -29,6 +31,7 @@ services:
       - CLEANING_SERVICE_URL=http://cleaning_service:8008
       - REPAIR_SERVICE_URL=http://repair_service:8009
       - CHILD_ASSISTANCE_SERVICE_URL=http://child_assistance_service:8010
+    restart: on-failure
 
   # User Service
   user_service:

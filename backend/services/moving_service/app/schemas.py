@@ -4,10 +4,12 @@ from typing import Optional, List
 
 # MovingService schemas
 class MovingBase(BaseModel):
-    order_id: int
+    id_order: int
+    id_provider: int
+    activity_range: str
     team_size: int = Field(..., gt=0)
     truck_size: str
-    id_provider: Optional[int] = None
+    availability: bool = True
 
     @validator('truck_size')
     def validate_truck_size(cls, v):
@@ -20,17 +22,10 @@ class MovingCreate(MovingBase):
     pass
 
 class MovingUpdate(BaseModel):
+    activity_range: Optional[str] = None
     team_size: Optional[int] = None
     truck_size: Optional[str] = None
-    status: Optional[str] = None
-
-    @validator('status')
-    def validate_status(cls, v):
-        if v is not None:
-            allowed_statuses = ['préparation', 'en cours', 'terminé', 'annulé']
-            if v not in allowed_statuses:
-                raise ValueError(f'Le statut doit être l\'un des suivants: {", ".join(allowed_statuses)}')
-        return v
+    availability: Optional[bool] = None
 
     @validator('truck_size')
     def validate_truck_size(cls, v):
@@ -42,8 +37,8 @@ class MovingUpdate(BaseModel):
 
 class MovingResponse(MovingBase):
     id: int
-    status: str
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        from_attributes = True  # Updated from orm_mode which is deprecated
+        from_attributes = True

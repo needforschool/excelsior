@@ -7,6 +7,7 @@ class UserInfo(BaseModel):
     lastName: str
     firstName: str
     email: str
+    phone: str
 
     class Config:
         from_attributes = True

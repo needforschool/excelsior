@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Title, Paragraph, useTheme } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import Constants from 'expo-constants';
+import IProvider from "@/types/provider";
 
 const apiUrl = Constants.expoConfig?.extra?.API_URL;
 
@@ -37,7 +38,7 @@ const slugToName = (slug: string) => {
 export default function ServiceProvidersScreen() {
     const theme = useTheme();
     const { slug } = useLocalSearchParams<{ slug: string }>();
-    const [providers, setProviders] = useState<any[]>([]);
+    const [providers, setProviders] = useState<IProvider[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +47,7 @@ export default function ServiceProvidersScreen() {
         (async () => {
             try {
                 const data = await fetchProviders(slug);
+                console.log(data);
                 setProviders(data);
             } catch (err: any) {
                 setError(err.message);
@@ -81,7 +83,7 @@ export default function ServiceProvidersScreen() {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.colors.text }]}>
-                    Prestataires pour « {slugToName(slug)} »
+                    Prestataires pour {slugToName(slug)}
                 </Text>
             </View>
 
@@ -100,10 +102,10 @@ export default function ServiceProvidersScreen() {
                         <Card elevation={4} style={styles.card}>
                             <Card.Content>
                                 <Title style={{ color: theme.colors.primary }}>
-                                    {item.name}
+                                    {item.user.firstName} {item.user.lastName}
                                 </Title>
                                 <Paragraph style={{ color: theme.colors.text }}>
-                                    {item.email}
+                                    {item.user.email}
                                 </Paragraph>
                             </Card.Content>
                         </Card>

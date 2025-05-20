@@ -20,32 +20,52 @@ import { useApi } from '@/lib/api';
 
 // --- Forms ---------------------
 interface InfosProps {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
-    onSave: (newName: string) => Promise<void>;
+    phone: string;
+    onSave: (newData: { firstName: string; lastName: string, email: string, phone: string }) => void;
 }
-const InformationsForm: React.FC<InfosProps> = ({ name, email, onSave }) => {
-    const [newName, setNewName] = React.useState(name);
+const InformationsForm: React.FC<InfosProps> = (props) => {
+    const [firstName, setFirstName] = React.useState(props.firstName);
+    const [lastName, setLastName] = React.useState(props.lastName);
+    const [phone, setPhone] = React.useState(props.phone);
+    const [email, setEmail] = React.useState(props.email);
 
     return (
         <View style={styles.formContainer}>
             <TextInput
-                label="Nom complet"
-                value={newName}
-                onChangeText={setNewName}
+                label="Nom"
+                value={lastName}
+                onChangeText={setLastName}
+                mode="outlined"
+                style={styles.input}
+            />
+            <TextInput
+                label="Prénom"
+                value={firstName}
+                onChangeText={setFirstName}
                 mode="outlined"
                 style={styles.input}
             />
             <TextInput
                 label="Email"
                 value={email}
+                onChangeText={setEmail}
                 disabled
+                mode="outlined"
+                style={styles.input}
+            />
+            <TextInput
+                label="Téléphone"
+                value={phone}
+                onChangeText={setPhone}
                 mode="outlined"
                 style={styles.input}
             />
             <Button
                 mode="contained"
-                onPress={() => onSave(newName)}
+                onPress={() => props.onSave({ firstName, lastName, email, phone })}
                 style={styles.button}
             >
                 Mettre à jour
@@ -102,7 +122,14 @@ export default function ProfileScreen() {
     const { logout } = useAuth();
     const { apiFetch } = useApi();
 
-    const [profile, setProfile] = React.useState<{ name: string; email: string } | null>(null);
+    const [profile, setProfile] = React.useState<{
+        firstName: string;
+        lastName: string;
+        phone: string;
+        email: string;
+        created_at: string;
+        updated_at: string;
+    } | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     // Notification settings state
@@ -130,30 +157,54 @@ export default function ProfileScreen() {
         (async () => {
             try {
                 const data = await apiFetch('/users/me');
-                setProfile({ name: data.name || '', email: data.email || '' });
+                setProfile({
+                    lastName: data.lastName,
+                    firstName: data.firstName,
+                    email: data.email,
+                    phone: data.phone,
+                    created_at: data.created_at,
+                    updated_at: data.updated_at,
+                });
             } catch (err) {
                 console.warn('Chargement du profil échoué', err);
-                setProfile({ name: '', email: '' });
+                setProfile({
+                    lastName: '',
+                    firstName: '',
+                    email: '',
+                    phone: '',
+                    created_at: '',
+                    updated_at: '',
+                });
             } finally {
                 setLoading(false);
             }
         })();
-    }, [apiFetch]);
+    }, []);
 
     const handleLogout = async () => {
         await logout();
         router.replace('/');
     };
 
-    const handleSaveName = async (newName: string) => {
+    const handleSaveName = async (data: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+    }) => {
         // Exemple PUT /users/me
         try {
             await apiFetch('/users/me', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName }),
+                body: JSON.stringify({
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    phone: data.phone,
+                    email: data.email,
+                }),
             });
-            setProfile((p) => p && { ...p, name: newName });
+            setProfile((p) => p && { ...p });
             alert('Profil mis à jour !');
         } catch {
             alert('Erreur lors de la mise à jour du profil.');
@@ -174,7 +225,12 @@ export default function ProfileScreen() {
 
     const renderScene = SceneMap({
         infos: () => (
-            <InformationsForm name={profile.name} email={profile.email} onSave={handleSaveName} />
+            <InformationsForm
+                                firstName={profile.firstName}
+                                lastName={profile.lastName}
+                                phone={profile.phone}
+                email={profile.email}
+                              onSave={handleSaveName} />
         ),
         securite: SecurityForm,
         paiements: PaymentsForm,
@@ -183,21 +239,28 @@ export default function ProfileScreen() {
         ),
     });
 
+    const timeStampToLocalDate = (timestamp: string) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <Avatar.Text
                     size={80}
-                    label={profile.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()}
+                    label={profile.firstName[0] + profile.lastName[0]}
                     style={{ backgroundColor: theme.colors.backdrop }}
                     color={theme.colors.primary}
                 />
-                <Text variant="titleMedium" style={styles.name}>{profile.name}</Text>
-                <Text variant="bodyMedium">Membre depuis mai 2023</Text>
+                <Text variant="titleMedium" style={styles.name}>
+                    {profile.firstName} {profile.lastName}
+                </Text>
+                <Text variant="bodyMedium">Membre depuis le {timeStampToLocalDate(profile.created_at)}</Text>
             </View>
 
             <TabView

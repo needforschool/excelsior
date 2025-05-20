@@ -7,8 +7,7 @@ import {
     Text,
     ActivityIndicator,
     Dimensions,
-    Modal,
-    TouchableOpacity,
+    Modal, Linking,
 } from 'react-native';
 import {
     Card,
@@ -23,6 +22,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApi } from '@/lib/api';
 import MapView, { Marker, UrlTile, Circle } from 'react-native-maps';
+import IProvider from "@/types/provider";
 
 export default function ProviderDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,14 +31,7 @@ export default function ProviderDetail() {
     const { apiFetch } = useApi();
     const mapRef = useRef<MapView>(null);
 
-    const [provider, setProvider] = useState<{
-        name: string;
-        description: string;
-        phone: string;
-        email: string;
-        latitude: number;
-        longitude: number;
-    } | null>(null);
+    const [provider, setProvider] = useState<IProvider>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [fullscreen, setFullscreen] = useState(false);
@@ -48,14 +41,7 @@ export default function ProviderDetail() {
         (async () => {
             try {
                 const data = await apiFetch(`/providers/${id}`);
-                setProvider({
-                    name: data.name,
-                    description: data.description,
-                    phone: data.phone,
-                    email: data.email,
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                });
+                setProvider(data);
             } catch (err: any) {
                 setError(err.message);
             } finally {
@@ -96,10 +82,10 @@ export default function ProviderDetail() {
             (Dimensions.get('window').width / Dimensions.get('window').height),
     };
 
-    const renderMap = () => (
+    const renderMap = (mapStyle: ViewStyle) => (
         <MapView
             ref={mapRef}
-            style={styles.map}
+            style={mapStyle}
             provider={undefined}
             initialRegion={region}
             loadingEnabled
@@ -111,7 +97,7 @@ export default function ProviderDetail() {
             />
             <Marker
                 coordinate={{ latitude: provider.latitude, longitude: provider.longitude }}
-                title={provider.name}
+                title={provider.user.firstName + ' ' + provider.user.lastName}
             />
             <Circle
                 center={{ latitude: provider.latitude, longitude: provider.longitude }}
@@ -130,27 +116,26 @@ export default function ProviderDetail() {
                         <View style={styles.header}>
                             <Avatar.Text
                                 size={64}
-                                label={provider.name.charAt(0).toUpperCase()}
+                                label={provider.user.firstName[0] + provider.user.lastName[0]}
                                 style={{ backgroundColor: theme.colors.primary }}
                                 color={theme.colors.onPrimary}
                             />
                             <View style={styles.headerText}>
-                                <Title style={styles.title}>{provider.name}</Title>
-                                <Paragraph style={styles.subtitle}>
-                                    {provider.description}
-                                </Paragraph>
+                                <Title style={styles.title}>{provider.user.firstName} {provider.user.lastName}</Title>
                             </View>
                         </View>
                         <List.Section>
                             <List.Item
-                                title={provider.phone}
+                                title={provider.user.phone}
                                 description="Téléphone"
                                 left={(props) => <List.Icon {...props} icon="phone" />}
+                                onPress={() => Linking.openURL(`tel:${provider.user.phone}`)}
                             />
                             <List.Item
-                                title={provider.email}
+                                title={provider.user.email}
                                 description="Email"
                                 left={(props) => <List.Icon {...props} icon="email" />}
+                                onPress={() => Linking.openURL(`mailto:${provider.user.email}`)}
                             />
                         </List.Section>
                     </Card.Content>
@@ -158,7 +143,7 @@ export default function ProviderDetail() {
 
                 <Card elevation={2} style={styles.mapCard}>
                     <View style={styles.mapContainer}>
-                        {renderMap()}
+                        {renderMap(styles.map)}
                         <IconButton
                             icon={fullscreen ? "fullscreen-exit" : "fullscreen"}
                             size={24}
@@ -191,7 +176,7 @@ export default function ProviderDetail() {
                 {/* Modal plein écran */}
                 <Modal visible={fullscreen} animationType="slide">
                     <View style={styles.fullscreenMapContainer}>
-                        {renderMap()}
+                        {renderMap(StyleSheet.absoluteFillObject)}
                         <IconButton
                             icon="close"
                             size={28}
@@ -230,7 +215,11 @@ const styles = StyleSheet.create({
     mapCaption: { marginTop: 8, textAlign: 'center', color: 'gray' },
     actions: { marginTop: 24, flexDirection: 'row', justifyContent: 'space-around' },
     actionButton: { flex: 1, marginHorizontal: 8 },
-    fullscreenMapContainer: { flex: 1 },
+    fullscreenMapContainer: {
+        flex: 1,
+        // (optionnel) si vous voulez un fond :
+        backgroundColor: '#fff',
+    },
     closeButton: {
         position: 'absolute',
         top: 40,

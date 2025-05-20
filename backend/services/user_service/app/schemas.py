@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     firstName: str
     phone: Optional[str] = None
     email: EmailStr
-    role: str
+    role: Optional[str] = Field(default='client', description="Le rôle de l'utilisateur ('client' ou 'prestataire')")
 
     @validator('role')
     def validate_role(cls, v):

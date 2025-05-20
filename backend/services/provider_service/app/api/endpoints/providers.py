@@ -33,8 +33,8 @@ async def read_providers(skip: int = 0, limit: int = 100, db: Session = Depends(
                 type=prov.type,
                 latitude=prov.latitude,
                 longitude=prov.longitude,
-                created_at=prov.created_at,    # <-- on fournit bien ces deux-là
-                updated_at=prov.updated_at,    #
+                created_at=prov.created_at,
+                updated_at=prov.updated_at,
                 user=user_data
             )
         )

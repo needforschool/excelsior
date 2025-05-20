@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Literal
 
 from app.schemas import ProviderCreate, ProviderResponse, ProviderUpdate
-from app.crud import get_provider, get_providers, get_available_providers, get_provider_by_email, create_provider, update_provider, delete_provider
+from app.crud import (
+    get_provider, get_providers, get_available_providers, get_provider_by_email, create_provider, 
+    update_provider, delete_provider, get_providers_by_type, get_available_providers_by_type
+)
 from app.database import get_db
 
 router = APIRouter()
@@ -45,3 +48,23 @@ def delete_provider_endpoint(provider_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Prestataire non trouvé")
     return {"detail": "Prestataire supprimé avec succès"}
+
+@router.get("/providers/type/{provider_type}", response_model=List[ProviderResponse])
+def read_providers_by_type(
+    provider_type: Literal['transport', 'cleaning', 'repair', 'childcare', 'moving'], 
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+):
+    providers = get_providers_by_type(db, provider_type=provider_type, skip=skip, limit=limit)
+    return providers
+
+@router.get("/providers/available/type/{provider_type}", response_model=List[ProviderResponse])
+def read_available_providers_by_type(
+    provider_type: Literal['transport', 'cleaning', 'repair', 'childcare', 'moving'], 
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+):
+    providers = get_available_providers_by_type(db, provider_type=provider_type, skip=skip, limit=limit)
+    return providers

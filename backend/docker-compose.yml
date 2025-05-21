@@ -96,6 +96,8 @@ services:
       - SERVICE_PORT=8003
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - TOKEN_TYPE=${TOKEN_TYPE}
+      - STRIPE_SECRET_KEY=sk_test_51RR7byH4jMkPYQb8tNOka526rtegXuZIWwNvPdVJuw2XhvwkkYzl6hZWk57el0HRJ3cWXnX1cXPxPycHoejbd2Vh00xE6Z6ln3
+      - STRIPE_PUBLISHABLE_KEY=pk_test_51RR7byH4jMkPYQb8t2Oo4Z9tuwGTrVLVHm6CaZqpjkrXiO3gpVKvDwC3ukA3yMq7kbpP3WOTykN0Kb4N3ryYTDmW00c5siStxB
 
   # Notification Service
   notification_service:

@@ -4,11 +4,13 @@ import IUser from "./user";
 export default interface IProvider {
     id: number;
     id_user: number;
+    name: string;
+    description: string;
+    short_description: string;
     latitude: number;
     longitude: number;
     type: string;
     created_at: string;
     updated_at: string;
     user: IUser;
-
 }

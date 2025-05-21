@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, constr
 from datetime import datetime
 from typing import Optional, List
 
@@ -39,3 +39,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+class ChangePassword(BaseModel):
+    old_password: constr(min_length=8)
+    new_password: constr(min_length=8)

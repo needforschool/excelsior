@@ -59,6 +59,9 @@ async def read_provider(provider_id: int, db: Session = Depends(get_db)):
         longitude=prov.longitude,
         created_at=prov.created_at,
         updated_at=prov.updated_at,
+        name=prov.name,
+        description=prov.description,
+        short_description=prov.short_description,
         user=user_data
     )
 
@@ -104,6 +107,9 @@ async def read_providers_by_type(
             longitude=prov.longitude,
             created_at=prov.created_at,
             updated_at=prov.updated_at,
+            name=prov.name,
+            description=prov.description,
+            short_description=prov.short_description,
             user=user
         )
 

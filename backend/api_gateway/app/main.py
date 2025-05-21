@@ -136,42 +136,84 @@ async def health_check():
     return {"status": "ok", "services": results}
 
 # Fonction pour transférer les requêtes aux microservices
-async def proxy_request(request: Request, service: str, path: str):
+import json
+from fastapi import HTTPException, Request, Response, status
+from typing import Any
+
+async def proxy_request(request: Request, service: str, path: str) -> Any:
     if service not in SERVICE_URLS:
         raise HTTPException(status_code=404, detail=f"Service {service} non trouvé")
-        
+
+    # Auth
     auth_header = request.headers.get("Authorization")
-    if (auth_header and auth_header.startswith("Bearer ")):
+    if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         await verify_token(token)
 
+    # Construire l'URL cible
     service_url = SERVICE_URLS[service]
     target_url = f"{service_url}/{path}"
 
+    # Récupérer le body si nécessaire
     body = b""
-    if request.method in ["POST", "PUT", "PATCH"]:
+    if request.method in ("POST", "PUT", "PATCH"):
         body = await request.body()
 
+    # Reproduire les headers (sans host)
     headers = dict(request.headers)
     headers.pop("host", None)
 
+    # Reproduire les query params
     params = dict(request.query_params)
 
     try:
-        response = await http_client.request(
-            method=request.method,
-            url=target_url,
-            headers=headers,
-            params=params,
-            content=body,
-            timeout=30.0
+        resp = await http_client.request(
+            method  = request.method,
+            url     = target_url,
+            headers = headers,
+            params  = params,
+            content = body,
+            timeout = 30.0,
         )
-        print(f"Proxying to {target_url}, Response: {response.status_code}, {response.text}")  # Debug log
-        return json.loads(response.content) if response.content else {}
+        print(f"Proxying to {target_url} → {resp.status_code}")
+
+        # 1) No Content → on renvoie directement 204
+        if resp.status_code == status.HTTP_204_NO_CONTENT:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+        # 2) Si JSON (et un corps non vide), on parse
+        content_type = resp.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            try:
+                return resp.json()
+            except ValueError:
+                # JSON mal formé
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Réponse JSON mal formée depuis le service en aval"
+                )
+
+        # 3) Tout autre cas (texte, HTML, binaire) → on renvoie brut
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=content_type or "application/octet-stream"
+        )
+
     except httpx.RequestError as e:
-        raise HTTPException(status_code=503, detail=f"Erreur de connexion au service {service}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Erreur de connexion au service {service}: {str(e)}"
+        )
+    except HTTPException:
+        # Laisser remonter les 404/401/502 déjà levées
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur interne: {str(e)}")
+        # Autres erreurs inattendues
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur interne: {str(e)}"
+        )
 
 # Routes pour les utilisateurs
 # Removed duplicate definition of create_user to avoid conflicts
@@ -183,6 +225,11 @@ async def read_users(request: Request):
 @app.get("/users/me", tags=["users"])
 async def read_current_user(request: Request):
     return await proxy_request(request, "user", "users/me")
+
+@app.post("/users/me/password", tags=["users"])
+async def change_password(request: Request):
+    # On proxy en POST vers le user-service à /users/me/password
+    return await proxy_request(request, "user", "users/me/password")
 
 @app.get("/api/users/{user_id}", tags=["users"])
 async def read_user(request: Request, user_id: int):
@@ -276,6 +323,10 @@ async def read_payments(request: Request):
 async def read_payment(request: Request, payment_id: int):
     return await proxy_request(request, "payment", f"payments/{payment_id}")
 
+@app.post("/create-payment-intent")
+async def create_payment_intent(request: Request):
+    return await proxy_request(request, "payment", "create-payment-intent")
+
 @app.get("/orders/{order_id}/payment", tags=["payments"])
 async def read_order_payment(request: Request, order_id: int):
     return await proxy_request(request, "payment", f"orders/{order_id}/payment")
@@ -322,6 +373,14 @@ async def create_transport(request: Request):
 @app.get("/transports/", tags=["transports"])
 async def read_transports(request: Request):
     return await proxy_request(request, "transport", "transports/")
+
+@app.get("/transports", 
+
+@app.get("/transports/{transport_id}", tags=["transports"])
+async def read_transport(request: Request, transport_id: int):
+    return await proxy_request(request, "transport", f"transports/{transport_id}")
+
+
 
 @app.get("/orders/{order_id}/transport", tags=["transports"])
 async def read_order_transport(request: Request, order_id: int):

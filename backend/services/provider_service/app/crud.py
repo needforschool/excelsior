@@ -25,7 +25,10 @@ def create_provider(db: Session, provider: ProviderCreate):
         type=provider.type,
         availability=provider.availability,
         latitude=provider.latitude,
-        longitude=provider.longitude
+        longitude=provider.longitude,
+        name=provider.name,
+        description=provider.description,
+        short_description=provider.short_description,
     )
     db.add(db_provider)
     db.commit()

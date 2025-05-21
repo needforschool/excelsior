@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+import os
+
+import stripe
 
 from app.schemas import PaymentCreate, PaymentResponse, PaymentUpdate
 from app.crud import get_payment, get_payments, get_payment_by_order, create_payment, update_payment, delete_payment
@@ -44,3 +47,14 @@ def delete_payment_endpoint(payment_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Paiement non trouvé")
     return {"detail": "Paiement supprimé avec succès"}
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+
+@router.post("/create-payment-intent")
+async def create_payment_intent(amount: int = 1000):
+    intent = stripe.PaymentIntent.create(
+        amount=amount,
+        currency="eur",
+        automatic_payment_methods={"enabled": True},
+    )
+    return {"clientSecret": intent.client_secret}

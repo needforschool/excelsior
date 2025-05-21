@@ -39,8 +39,13 @@ export const useApi = () => {
             throw new Error(errMsg);
         }
 
-        // Enfin, on parse le JSON et on le retourne
-        return JSON.parse(text);
+        // if the reposne is a content type of application/json the return the json parsed
+        if (response.headers.get('content-type') === 'application/json') {
+            return JSON.parse(text);
+        }
+        // Si la réponse n’est pas JSON, on retourne le texte brut
+        // Si la réponse est un JSON, on retourne le JSON
+        return text;
     };
 
     return { apiFetch };

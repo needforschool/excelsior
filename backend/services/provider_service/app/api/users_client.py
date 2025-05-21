@@ -1,4 +1,3 @@
-# app/api/users_client.py
 import os
 import httpx
 from fastapi import HTTPException

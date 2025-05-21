@@ -36,14 +36,17 @@ def seed_providers(count: int = 50):
             cur.execute(
                 """
                 INSERT INTO providers
-                  (id_user, type, latitude, longitude, created_at, updated_at)
-                VALUES (%s,%s,%s,%s,NOW(),NOW());
+                  (id_user, type, latitude, longitude, created_at, updated_at, name, description, short_description)
+                VALUES (%s,%s,%s,%s,NOW(),NOW(),%s ,%s ,%s);
                 """,
                 (
                     uid,
                     fake.random_element(elements=("transport","cleaning","repair","childcare","moving")),
                     float(fake.latitude()),
                     float(fake.longitude()),
+                    fake.company(),
+                    fake.catch_phrase(),
+                    fake.sentence(nb_words=10)
                 )
             )
         conn.commit()

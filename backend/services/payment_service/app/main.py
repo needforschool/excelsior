@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.api.api import router
+import os
+import stripe
+
 
 # Création des tables dans la base de données
 Base.metadata.create_all(bind=engine)
@@ -22,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configuration stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 @app.get("/")
 async def root():

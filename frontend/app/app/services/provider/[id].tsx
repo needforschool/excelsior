@@ -18,6 +18,7 @@ import {
     Button,
     IconButton,
     useTheme,
+    Appbar
 } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApi } from '@/lib/api';
@@ -32,6 +33,7 @@ export default function ProviderDetail() {
     const mapRef = useRef<MapView>(null);
 
     const [provider, setProvider] = useState<IProvider>(null);
+    const [providerService, setProviderService] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [fullscreen, setFullscreen] = useState(false);
@@ -42,6 +44,9 @@ export default function ProviderDetail() {
             try {
                 const data = await apiFetch(`/providers/${id}`);
                 setProvider(data);
+                const providerServiceData = await apiFetch(`/${data.type}s/${id}`);
+                console.log('Provider Service Data:', providerServiceData);
+                setProviderService(providerServiceData);
             } catch (err: any) {
                 setError(err.message);
             } finally {
@@ -110,18 +115,19 @@ export default function ProviderDetail() {
 
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.Content title="Détails du prestataire" />
+            </Appbar.Header>
             <ScrollView contentContainerStyle={styles.container}>
                 <Card elevation={4} style={styles.card}>
                     <Card.Content>
                         <View style={styles.header}>
-                            <Avatar.Text
-                                size={64}
-                                label={provider.user.firstName[0] + provider.user.lastName[0]}
-                                style={{ backgroundColor: theme.colors.primary }}
-                                color={theme.colors.onPrimary}
-                            />
                             <View style={styles.headerText}>
-                                <Title style={styles.title}>{provider.user.firstName} {provider.user.lastName}</Title>
+                                <Title style={styles.title}>{provider.name}</Title>
+                                <Text style={styles.subtitle}>
+                                    {provider.user.firstName} {provider.user.lastName}
+                                </Text>
                             </View>
                         </View>
                         <List.Section>

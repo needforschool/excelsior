@@ -1,20 +1,23 @@
-import { useOrder } from '~/composables/order'
-import { useTransport } from '~/composables/transport'
-import { useCleaning } from '~/composables/cleaning'
-import { useMoving } from '~/composables/moving'
-import { useRepair } from '~/composables/repair'
-import { useChildAssistance } from '~/composables/childAssistance'
+import { ref, onMounted } from 'vue'
+import { useTransportService, type Transport } from '~/services/transport'
+import { useCleaningService, type Cleaning } from '~/services/cleaning'
+import { useMovingService, type Moving } from '~/services/moving'
+import { useRepairService, type Repair } from '~/services/repair'
+import { useChildAssistanceService, type ChildAssistance } from '~/services/childAssistance'
+
+// Create a union type for all possible service types
+type ServiceDetails = Transport | Cleaning | Moving | Repair | ChildAssistance | null
 
 /**
- * Composable pour gérer les détails de service associés à une commande
+ * Composable for managing service details associated with an order
  */
 export const useServiceDetails = (orderId: number, serviceType: string) => {
-  // États communs
-  const serviceDetails = ref(null)
+  // Common states
+  const serviceDetails = ref<ServiceDetails>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   
-  // Fetch le service approprié en fonction du type
+  // Fetch the appropriate service based on the type
   const fetchServiceDetails = async () => {
     loading.value = true
     error.value = null
@@ -24,28 +27,28 @@ export const useServiceDetails = (orderId: number, serviceType: string) => {
       
       switch (serviceType) {
         case 'transport':
-          const { getTransportByOrder } = useTransport()
-          response = await getTransportByOrder(orderId)
+          const transportService = useTransportService()
+          response = await transportService.getTransportByOrder(orderId)
           break
           
         case 'nettoyage':
-          const { getCleaningByOrder } = useCleaning()
-          response = await getCleaningByOrder(orderId)
+          const cleaningService = useCleaningService()
+          response = await cleaningService.getCleaningByOrder(orderId)
           break
           
         case 'déménagement':
-          const { getMovingByOrder } = useMoving()
-          response = await getMovingByOrder(orderId)
+          const movingService = useMovingService()
+          response = await movingService.getMovingByOrder(orderId)
           break
           
         case 'dépannage':
-          const { getRepairByOrder } = useRepair()
-          response = await getRepairByOrder(orderId)
+          const repairService = useRepairService()
+          response = await repairService.getRepairByOrder(orderId)
           break
           
         case 'garde enfant':
-          const { getChildAssistanceByOrder } = useChildAssistance()
-          response = await getChildAssistanceByOrder(orderId)
+          const childAssistanceService = useChildAssistanceService()
+          response = await childAssistanceService.getChildAssistanceByOrder(orderId)
           break
           
         default:
@@ -67,7 +70,7 @@ export const useServiceDetails = (orderId: number, serviceType: string) => {
     }
   }
   
-  // Formater le type de service pour l'affichage
+  // Format service type for display
   const formatServiceType = (type: string) => {
     const serviceTypes = {
       'transport': 'Transport et Livraison',
@@ -80,7 +83,7 @@ export const useServiceDetails = (orderId: number, serviceType: string) => {
     return serviceTypes[type as keyof typeof serviceTypes] || type
   }
   
-  // Récupérer le composant approprié pour afficher les détails du service
+  // Get the appropriate component to display service details
   const getServiceComponent = () => {
     switch (serviceType) {
       case 'transport':
@@ -98,7 +101,7 @@ export const useServiceDetails = (orderId: number, serviceType: string) => {
     }
   }
   
-  // Exécuter la requête au chargement du composant
+  // Execute the request when the component loads
   onMounted(() => {
     fetchServiceDetails()
   })

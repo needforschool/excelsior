@@ -38,7 +38,15 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
+    email: str | None = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ContactRequest(BaseModel):
+    name: str
+    email: EmailStr
+    message: str
 
 class ChangePassword(BaseModel):
     old_password: constr(min_length=8)

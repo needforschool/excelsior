@@ -35,3 +35,11 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ContactRequest(BaseModel):
+    name: str
+    email: EmailStr
+    message: str

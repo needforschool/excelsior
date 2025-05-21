@@ -36,6 +36,14 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
+      
 class TokenData(BaseModel):
-    email: Optional[str] = None
+    email: str | None = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ContactRequest(BaseModel):
+    name: str
+    email: EmailStr
+    message: str

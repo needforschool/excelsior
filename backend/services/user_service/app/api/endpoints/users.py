@@ -104,9 +104,10 @@ def read_current_user(current_user: UserResponse = Depends(get_current_user)):
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = get_user(db, user_id=user_id)
-    if db_user is None:
+    user = get_user(db, user_id)
+    if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
     return db_user
 
 @router.post("/users/forgot-password")
@@ -157,3 +158,4 @@ def contact(request: ContactRequest):
     admin_email = os.getenv('ADMIN_EMAIL')
     send_email(subject, body, to_email=admin_email, smtp_server=os.getenv('SMTP_SERVER', 'localhost'), smtp_port=int(os.getenv('SMTP_PORT', 25)), smtp_user=os.getenv('SMTP_USER'), smtp_password=os.getenv('SMTP_PASSWORD'), html_body=html_body)
     return {"message": "Votre message a été reçu. Nous vous contacterons bientôt."}
+

@@ -2,18 +2,460 @@ version: "3.8"
 
 networks:
   backend-net:
-    driver: overlay
+    external: true
 
 volumes:
-  registry_data:
+  user_db_data:
+  order_db_data:
+  payment_db_data:
+  notification_db_data:
+  provider_db_data:
+  transport_db_data:
+  moving_db_data:
+  cleaning_db_data:
+  repair_db_data:
+  child_assistance_db_data:
+  redis_data:
 
 services:
-  registry:
-    image: registry:2
+
+  fixtures_runner:
+    image: quickserve:5000/fixtures_runner:latest
+    depends_on:
+      - user_db
+      - provider_db
+      - user_service
+      - provider_service
+    environment:
+      USER_DB_URL: "postgresql://postgres:postgres@user_db:5432/user_service"
+      PROVIDER_DB_URL: "postgresql://postgres:postgres@provider_db:5432/provider_service"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+
+  api_gateway:
+    image: quickserve:5000/api_gateway:latest
     ports:
-      - "5000:5000"
+      - target: 8000
+        published: 8080
+        protocol: tcp
+    depends_on:
+      - user_service
+      - order_service
+      - payment_service
+      - notification_service
+      - provider_service
+      - transport_service
+      - moving_service
+      - cleaning_service
+      - repair_service
+      - child_assistance_service
+    environment:
+      USER_SERVICE_URL: "http://user_service:8001"
+      ORDER_SERVICE_URL: "http://order_service:8002"
+      PAYMENT_SERVICE_URL: "http://payment_service:8003"
+      NOTIFICATION_SERVICE_URL: "http://notification_service:8004"
+      PROVIDER_SERVICE_URL: "http://provider_service:8005"
+      TRANSPORT_SERVICE_URL: "http://transport_service:8006"
+      MOVING_SERVICE_URL: "http://moving_service:8007"
+      CLEANING_SERVICE_URL: "http://cleaning_service:8008"
+      REPAIR_SERVICE_URL: "http://repair_service:8009"
+      CHILD_ASSISTANCE_SERVICE_URL: "http://child_assistance_service:8010"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  user_service:
+    image: quickserve:5000/user_service:latest
+    depends_on:
+      - user_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@user_db:5432/user_service"
+      REDIS_URL: "redis://redis:6379/0"
+      SERVICE_PORT: "8001"
+      ACCESS_TOKEN: "${ACCESS_TOKEN}"
+      TOKEN_TYPE: "${TOKEN_TYPE}"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+  order_service:
+    image: quickserve:5000/order_service:latest
+    depends_on:
+      - order_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@order_db:5432/order_service"
+      REDIS_URL: "redis://redis:6379/1"
+      SERVICE_PORT: "8002"
+      ACCESS_TOKEN: "${ACCESS_TOKEN}"
+      TOKEN_TYPE: "${TOKEN_TYPE}"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+  payment_service:
+    image: quickserve:5000/payment_service:latest
+    depends_on:
+      - payment_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@payment_db:5432/payment_service"
+      REDIS_URL: "redis://redis:6379/2"
+      SERVICE_PORT: "8003"
+      ACCESS_TOKEN: "${ACCESS_TOKEN}"
+      TOKEN_TYPE: "${TOKEN_TYPE}"
+      STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY}"
+      STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY}"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  notification_service:
+    image: quickserve:5000/notification_service:latest
+    depends_on:
+      - notification_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@notification_db:5432/notification_service"
+      REDIS_URL: "redis://redis:6379/3"
+      SERVICE_PORT: "8004"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  provider_service:
+    image: quickserve:5000/provider_service:latest
+    depends_on:
+      - provider_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@provider_db:5432/provider_service"
+      REDIS_URL: "redis://redis:6379/4"
+      SERVICE_PORT: "8005"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  transport_service:
+    image: quickserve:5000/transport_service:latest
+    depends_on:
+      - transport_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@transport_db:5432/transport_service"
+      REDIS_URL: "redis://redis:6379/5"
+      SERVICE_PORT: "8006"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  moving_service:
+    image: quickserve:5000/moving_service:latest
+    depends_on:
+      - moving_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@moving_db:5432/moving_service"
+      REDIS_URL: "redis://redis:6379/6"
+      SERVICE_PORT: "8007"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  cleaning_service:
+    image: quickserve:5000/cleaning_service:latest
+    depends_on:
+      - cleaning_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@cleaning_db:5432/cleaning_service"
+      REDIS_URL: "redis://redis:6379/7"
+      SERVICE_PORT: "8008"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  repair_service:
+    image: quickserve:5000/repair_service:latest
+    depends_on:
+      - repair_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@repair_db:5432/repair_service"
+      REDIS_URL: "redis://redis:6379/8"
+      SERVICE_PORT: "8009"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  child_assistance_service:
+    image: quickserve:5000/child_assistance_service:latest
+    depends_on:
+      - child_assistance_db
+      - redis
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@child_assistance_db:5432/child_assistance_service"
+      REDIS_URL: "redis://redis:6379/9"
+      SERVICE_PORT: "8010"
+    networks:
+      - backend-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  user_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "user_service"
     volumes:
-      - registry_data:/var/lib/registry
+      - user_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  order_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "order_service"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d order_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  payment_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "payment_service"
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d payment_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  notification_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "notification_service"
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notification_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  provider_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "provider_service"
+    volumes:
+      - provider_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d provider_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  transport_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "transport_service"
+    volumes:
+      - transport_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d transport_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  moving_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "moving_service"
+    volumes:
+      - moving_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d moving_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  cleaning_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "cleaning_service"
+    volumes:
+      - cleaning_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cleaning_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  repair_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "repair_service"
+    volumes:
+      - repair_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d repair_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  child_assistance_db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "child_assistance_service"
+    volumes:
+      - child_assistance_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d child_assistance_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
     networks:
       - backend-net
     deploy:

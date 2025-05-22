@@ -41,7 +41,7 @@ export default function PoviderLayout() {
             <Tabs.Screen
                 name="configuration"                   // correspond à app/prestataire/services.tsx
                 options={{
-                    title: 'Services',
+                    title: 'Parametres',
                     tabBarIcon: ({ color }) => (
                         <MaterialCommunityIcons name="wrench" size={28} color={color} />
                     ),

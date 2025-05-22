@@ -10,11 +10,19 @@ router = APIRouter()
 
 @router.post("/orders/", response_model=OrderResponse)
 def create_new_order(order: OrderCreate, db: Session = Depends(get_db)):
+    print("Creating order:", order)
     return create_order(db=db, order=order)
 
 @router.get("/orders/", response_model=List[OrderResponse])
 def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     orders = get_orders(db, skip=skip, limit=limit)
+    return orders
+
+@router.get("/orders/provider/{provider_id}", response_model=List[OrderResponse])
+def get_provider_orders(provider_id: int, db: Session = Depends(get_db)):
+    orders = get_orders_by_provider(db, id_provider=provider_id)
+    if orders is None:
+        raise HTTPException(status_code=404, detail="Aucune commande trouvée pour ce fournisseur")
     return orders
 
 @router.get("/orders/{order_id}", response_model=OrderResponse)

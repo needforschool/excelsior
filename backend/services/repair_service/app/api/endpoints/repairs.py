@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas import RepairCreate, RepairResponse, RepairUpdate
-from app.crud import get_repair, get_repairs, get_repair_by_order, create_repair, update_repair, delete_repair
+from app.crud import get_repair, get_repairs, get_repair_by_order, create_repair, update_repair, delete_repair, get_repair_by_provider
 from app.database import get_db
 
 router = APIRouter()
@@ -15,6 +15,13 @@ def create_new_repair(repair: RepairCreate, db: Session = Depends(get_db)):
 @router.get("/repairs/", response_model=List[RepairResponse])
 def read_repairs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     repairs = get_repairs(db, skip=skip, limit=limit)
+    return repairs
+
+@router.get("/repairs/provider/{provider_id}", response_model=List[RepairResponse])
+def get_provider_repairs(provider_id: int, db: Session = Depends(get_db)):
+    repairs = get_repair_by_provider(db, id_provider=provider_id)
+    if repairs is None:
+        raise HTTPException(status_code=404, detail="Aucun service de dépannage trouvé pour ce fournisseur")
     return repairs
 
 @router.get("/repairs/{repair_id}", response_model=RepairResponse)

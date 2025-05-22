@@ -26,7 +26,7 @@ def create_moving(db: Session, moving: MovingCreate):
         activity_range=moving.activity_range,
         team_size=moving.team_size,
         truck_size=moving.truck_size,
-        availability=moving.availability
+        availabilities=moving.availabilities
     )
     db.add(db_moving)
     db.commit()
@@ -52,3 +52,7 @@ def delete_moving(db: Session, moving_id: int):
         db.commit()
         return True
     return False
+
+def get_moving_by_provider(db: Session, id_provider: int):
+    """Récupère un déménagement par le fournisseur"""
+    return db.query(Moving).filter(Moving.id_provider == id_provider).all()

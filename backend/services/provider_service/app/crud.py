@@ -23,7 +23,7 @@ def create_provider(db: Session, provider: ProviderCreate):
     db_provider = Provider(
         id_user=provider.id_user,
         type=provider.type,
-        availability=provider.availability,
+        availabilities=provider.availabilities,
         latitude=provider.latitude,
         longitude=provider.longitude,
         name=provider.name,

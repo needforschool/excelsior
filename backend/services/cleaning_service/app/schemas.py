@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
+from typing import Dict
 
 # CleaningService schemas
 class CleaningBase(BaseModel):
-    id_order: int
+
     id_provider: int
     location_type: str
     cleaning_duration: int = Field(..., gt=0)
-    availability: bool = True
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('location_type')
     def validate_location_type(cls, v):
@@ -23,7 +24,7 @@ class CleaningCreate(CleaningBase):
 class CleaningUpdate(BaseModel):
     location_type: Optional[str] = None
     cleaning_duration: Optional[int] = None
-    availability: Optional[bool] = None
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('location_type')
     def validate_location_type(cls, v):

@@ -2,6 +2,7 @@ import os
 import time
 import psycopg2
 from faker import Faker
+from passlib.hash import bcrypt
 
 fake = Faker()
 
@@ -28,6 +29,9 @@ def seed_users(count: int = 100):
     conn = psycopg2.connect(db_url)
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM users;")
+
+    raw_password = "password"
+    hashed_str = bcrypt.hash(raw_password)
     if cur.fetchone()[0] == 0:
         for _ in range(count):
             cur.execute(
@@ -41,7 +45,7 @@ def seed_users(count: int = 100):
                     fake.first_name(),
                     fake.phone_number(),
                     fake.unique.email(),
-                    fake.password(length=12),
+                    hashed_str,
                     fake.random_element(elements=("client","prestataire")),
                 )
             )

@@ -4,6 +4,7 @@ export default interface IUser {
     firstName: string;
     phone: string;
     email: string;
+    role: 'client' | 'prestataire';
     created_at: string;
     updated_at: string;
 }

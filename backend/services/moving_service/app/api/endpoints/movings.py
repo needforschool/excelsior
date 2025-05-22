@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas import MovingCreate, MovingResponse, MovingUpdate
-from app.crud import get_moving, get_movings, get_moving_by_order, create_moving, update_moving, delete_moving
+from app.crud import get_moving, get_movings, get_moving_by_order, create_moving, update_moving, delete_moving, get_moving_by_provider
 from app.database import get_db
 
 router = APIRouter()
@@ -15,6 +15,13 @@ def create_new_moving(moving: MovingCreate, db: Session = Depends(get_db)):
 @router.get("/movings/", response_model=List[MovingResponse])
 def read_movings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     movings = get_movings(db, skip=skip, limit=limit)
+    return movings
+
+@router.get("/movings/provider/{provider_id}", response_model=List[MovingResponse])
+def get_provider_movings(provider_id: int, db: Session = Depends(get_db)):
+    movings = get_moving_by_provider(db, id_provider=provider_id)
+    if movings is None:
+        raise HTTPException(status_code=404, detail="Aucun déménagement trouvé pour ce fournisseur")
     return movings
 
 @router.get("/movings/{moving_id}", response_model=MovingResponse)
@@ -44,3 +51,4 @@ def delete_moving_endpoint(moving_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Déménagement non trouvé")
     return {"detail": "Déménagement supprimé avec succès"}
+

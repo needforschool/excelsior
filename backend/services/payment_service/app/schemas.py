@@ -4,7 +4,7 @@ from typing import Optional, List
 
 # PaymentService schemas
 class PaymentBase(BaseModel):
-    id_order: int
+
     id_user: int
     amount: float = Field(..., gt=0)
     payment_status: str = "en attente"

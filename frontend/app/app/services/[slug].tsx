@@ -18,6 +18,7 @@ const apiUrl = Constants.expoConfig?.extra?.API_URL;
 async function fetchProviders(slug: string) {
     const response = await fetch(`${apiUrl}/providers/type/${slug}`);
     const data = await response.json();
+    console.log('API response:', data);
     if (!response.ok) {
         throw new Error(data.detail || 'Erreur réseau');
     }
@@ -103,6 +104,7 @@ export default function ServiceProvidersScreen() {
                             <Card.Content>
                                 <Title style={{ color: theme.colors.primary }}>
                                     {item.name}
+
                                 </Title>
                                 <Paragraph style={{ color: theme.colors.text, fontSize: 12 }}>
                                     {item.user.firstName} {item.user.lastName}

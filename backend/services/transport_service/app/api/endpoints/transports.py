@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas import TransportCreate, TransportResponse, TransportUpdate
-from app.crud import get_transport, get_transports, get_transport_by_order, create_transport, update_transport, delete_transport
+from app.crud import get_transport, get_transports, get_transport_by_order, create_transport, update_transport, delete_transport, get_transports_by_provider
 from app.database import get_db
 
 router = APIRouter()
@@ -15,6 +15,15 @@ def create_new_transport(transport: TransportCreate, db: Session = Depends(get_d
 @router.get("/transports/", response_model=List[TransportResponse])
 def read_transports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     transports = get_transports(db, skip=skip, limit=limit)
+    return transports
+
+@router.get("/transports/provider/{id_provider}", response_model=List[TransportResponse])
+def get_provider_transports(id_provider: int, db: Session = Depends(get_db)):
+    # print the id_provider
+    print(f"Provider ID: {id_provider}")
+    transports = get_transports_by_provider(db, id_provider)
+    if transports is None:
+        raise HTTPException(status_code=404, detail="Transport non trouvé")
     return transports
 
 @router.get("/transports/{transport_id}", response_model=TransportResponse)
@@ -44,3 +53,4 @@ def delete_transport_endpoint(transport_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Transport non trouvé")
     return {"detail": "Transport supprimé avec succès"}
+

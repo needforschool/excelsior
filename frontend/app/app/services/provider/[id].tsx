@@ -44,7 +44,13 @@ export default function ProviderDetail() {
             try {
                 const data = await apiFetch(`/providers/${id}`);
                 setProvider(data);
-                const providerServiceData = await apiFetch(`/${data.type}s/${id}`);
+                let datatype = "";
+                if (data.type === "childcare") {
+                    datatype = "child-assistance"
+                } else {
+                    datatype = data.type
+                }
+                const providerServiceData = await apiFetch(`/${datatype}s/provider/${data.id}`);
                 console.log('Provider Service Data:', providerServiceData);
                 setProviderService(providerServiceData);
             } catch (err: any) {
@@ -165,17 +171,14 @@ export default function ProviderDetail() {
                 <View style={styles.actions}>
                     <Button
                         mode="contained"
-                        onPress={() => router.push(`/services/provider/${id}/schedule`)}
+                        onPress={() => {
+                            const service_json = encodeURIComponent(JSON.stringify(providerService));
+                            const provider_json = encodeURIComponent(JSON.stringify(provider));
+                            router.push(`/services/provider/${id}/schedule?service=${service_json}&provider=${provider_json}`);
+                        }}
                         style={styles.actionButton}
                     >
                         Prendre rendez-vous
-                    </Button>
-                    <Button
-                        mode="outlined"
-                        onPress={() => router.push(`/services/provider/${id}/schedule`)}
-                        style={styles.actionButton}
-                    >
-                        Voir l'agenda
                     </Button>
                 </View>
 

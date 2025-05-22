@@ -154,19 +154,23 @@
             <div>
               <h3 class="font-medium">Changer le mot de passe</h3>
               <p class="text-sm text-muted-foreground">Mettez à jour votre mot de passe pour sécuriser votre compte</p>
-              <Button variant="outline" class="w-full mt-2" as="NuxtLink" to="/profile/password">
-                <LucideKey class="w-4 h-4 mr-2" />
-                Modifier le mot de passe
-              </Button>
+              <NuxtLink to="/profile/password">
+                <Button variant="outline" class="w-full mt-2">
+                  <LucideKey class="w-4 h-4 mr-2" />
+                  Modifier le mot de passe
+                </Button>
+              </NuxtLink>
             </div>
             
             <div>
               <h3 class="font-medium">Authentification à deux facteurs</h3>
               <p class="text-sm text-muted-foreground">Ajoutez une couche de sécurité supplémentaire à votre compte</p>
-              <Button variant="outline" class="w-full mt-2" as="NuxtLink" to="/profile/2fa">
-                <LucideShield class="w-4 h-4 mr-2" />
-                Configurer la 2FA
-              </Button>
+              <NuxtLink to="/profile/2fa">
+                <Button variant="outline" class="w-full mt-2">
+                  <LucideShield class="w-4 h-4 mr-2" />
+                  Configurer la 2FA
+                </Button>
+              </NuxtLink>
             </div>
           </div>
         </div>
@@ -191,10 +195,12 @@
               </div>
             </div>
             
-            <Button variant="outline" class="w-full" as="NuxtLink" to="/profile/payment">
-              <LucidePlus class="w-4 h-4 mr-2" />
-              Ajouter un moyen de paiement
-            </Button>
+            <NuxtLink to="/profile/payment">
+              <Button variant="outline" class="w-full">
+                <LucidePlus class="w-4 h-4 mr-2" />
+                Ajouter un moyen de paiement
+              </Button>
+            </NuxtLink>
           </div>
         </div>
         

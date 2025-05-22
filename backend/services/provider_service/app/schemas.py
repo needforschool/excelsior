@@ -7,7 +7,7 @@ class UserInfo(BaseModel):
     lastName: str
     firstName: str
     email: str
-    phone: str
+    phone: Optional[str] = None  # Modifié pour être facultatif
 
     class Config:
         from_attributes = True

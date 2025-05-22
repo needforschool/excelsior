@@ -15,5 +15,6 @@ class Provider(Base):
     type = Column(Enum('transport', 'cleaning', 'repair', 'childcare', 'moving', name='provider_type'), nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    availability = Column(Boolean, default=True)  # Ajout du champ availability
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)

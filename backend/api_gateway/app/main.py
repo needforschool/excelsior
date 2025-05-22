@@ -78,7 +78,7 @@ async def get_all_services_openapi():
                 # Ajouter le préfixe du service aux chemins
                 service_paths = service_schema.get("paths", {})
                 prefixed_paths = {
-                    f"/api/{service_name}{path}": route
+                    f"/{service_name}{path}": route
                     for path, route in service_paths.items()
                 }
                 combined_paths.update(prefixed_paths)
@@ -176,11 +176,11 @@ async def proxy_request(request: Request, service: str, path: str):
 # Routes pour les utilisateurs
 # Removed duplicate definition of create_user to avoid conflicts
 
-@app.get("/api/users/", tags=["users"])
+@app.get("/users/", tags=["users"])
 async def read_users(request: Request):
     return await proxy_request(request, "user", "users/")
 
-@app.get("/api/users/me", tags=["users"])
+@app.get("/users/me", tags=["users"])
 async def read_current_user(request: Request):
     return await proxy_request(request, "user", "users/me")
 
@@ -188,7 +188,7 @@ async def read_current_user(request: Request):
 async def read_user(request: Request, user_id: int):
     return await proxy_request(request, "user", f"users/{user_id}")
 
-@app.post("/api/token", tags=["auth"], summary="Obtenir un token d'authentification", description="Authentifie un utilisateur et retourne un token JWT", response_model=Token, responses={200: {"description": "Token généré avec succès"}, 401: {"description": "Identifiants invalides"}, 422: {"description": "Erreur de validation"}})
+@app.post("/token", tags=["auth"], summary="Obtenir un token d'authentification", description="Authentifie un utilisateur et retourne un token JWT", response_model=Token, responses={200: {"description": "Token généré avec succès"}, 401: {"description": "Identifiants invalides"}, 422: {"description": "Erreur de validation"}})
 async def login(login_data: LoginRequest):
     """Endpoint pour l'authentification des utilisateurs"""
     try:
@@ -211,17 +211,17 @@ async def login(login_data: LoginRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors de l'authentification: {str(e)}")
 
-@app.post("/api/users/", tags=["users"], summary="Créer un nouvel utilisateur", description="Enregistre un nouvel utilisateur dans le système", response_model=UserResponse, responses={200: {"description": "Utilisateur créé avec succès"}, 400: {"description": "Email déjà existant"}, 422: {"description": "Erreur de validation"}})
+@app.post("/users/", tags=["users"], summary="Créer un nouvel utilisateur", description="Enregistre un nouvel utilisateur dans le système", response_model=UserResponse, responses={200: {"description": "Utilisateur créé avec succès"}, 400: {"description": "Email déjà existant"}, 422: {"description": "Erreur de validation"}})
 async def create_user(request: Request):
     """Endpoint pour la création d'utilisateur"""
     return await proxy_request(request, "user", "users/")
 
-@app.get("/api/users/", tags=["users"], summary="Lister les utilisateurs", description="Retourne la liste des utilisateurs (nécessite authentification)", responses={200: {"description": "Liste des utilisateurs"}, 401: {"description": "Non authentifié"}})
+@app.get("/users/", tags=["users"], summary="Lister les utilisateurs", description="Retourne la liste des utilisateurs (nécessite authentification)", responses={200: {"description": "Liste des utilisateurs"}, 401: {"description": "Non authentifié"}})
 async def read_users(request: Request):
     """Endpoint pour récupérer la liste des utilisateurs"""
     return await proxy_request(request, "user", "users/")
 
-@app.post("/api/users", tags=["auth"], summary="Register a new user", description="Registers a new user in the system")
+@app.post("/users", tags=["auth"], summary="Register a new user", description="Registers a new user in the system")
 async def register_user(request: Request, payload: dict = Body(...)):
     """Endpoint for user registration"""
     try:
@@ -247,127 +247,135 @@ async def register_user(request: Request, payload: dict = Body(...)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # Routes pour les commandes
-@app.post("/api/orders/", tags=["orders"])
+@app.post("/orders/", tags=["orders"])
 async def create_order(request: Request):
     return await proxy_request(request, "order", "orders/")
 
-@app.get("/api/orders/", tags=["orders"])
+@app.get("/orders/", tags=["orders"])
 async def read_orders(request: Request):
     return await proxy_request(request, "order", "orders/")
 
-@app.get("/api/orders/{order_id}", tags=["orders"])
+@app.get("/orders/{order_id}", tags=["orders"])
 async def read_order(request: Request, order_id: int):
     return await proxy_request(request, "order", f"orders/{order_id}")
 
-@app.get("/api/users/{user_id}/orders/", tags=["orders"])
+@app.get("/users/{user_id}/orders/", tags=["orders"])
 async def read_user_orders(request: Request, user_id: int):
     return await proxy_request(request, "order", f"users/{user_id}/orders/")
 
 # Routes pour les paiements
-@app.post("/api/payments/", tags=["payments"])
+@app.post("/payments/", tags=["payments"])
 async def create_payment(request: Request):
     return await proxy_request(request, "payment", "payments/")
 
-@app.get("/api/payments/", tags=["payments"])
+@app.get("/payments/", tags=["payments"])
 async def read_payments(request: Request):
     return await proxy_request(request, "payment", "payments/")
 
-@app.get("/api/payments/{payment_id}", tags=["payments"])
+@app.get("/payments/{payment_id}", tags=["payments"])
 async def read_payment(request: Request, payment_id: int):
     return await proxy_request(request, "payment", f"payments/{payment_id}")
 
-@app.get("/api/orders/{order_id}/payment", tags=["payments"])
+@app.get("/orders/{order_id}/payment", tags=["payments"])
 async def read_order_payment(request: Request, order_id: int):
     return await proxy_request(request, "payment", f"orders/{order_id}/payment")
 
 # Routes pour les notifications
-@app.post("/api/notifications/", tags=["notifications"])
+@app.post("/notifications/", tags=["notifications"])
 async def create_notification(request: Request):
     return await proxy_request(request, "notification", "notifications/")
 
-@app.get("/api/notifications/", tags=["notifications"])
+@app.get("/notifications/", tags=["notifications"])
 async def read_notifications(request: Request):
     return await proxy_request(request, "notification", "notifications/")
 
-@app.get("/api/users/{user_id}/notifications/", tags=["notifications"])
+@app.get("/users/{user_id}/notifications/", tags=["notifications"])
 async def read_user_notifications(request: Request, user_id: int):
     return await proxy_request(request, "notification", f"users/{user_id}/notifications/")
 
 # Routes pour les prestataires
-@app.post("/api/providers/", tags=["providers"])
+@app.post("/providers/", tags=["providers"])
 async def create_provider(request: Request):
     return await proxy_request(request, "provider", "providers/")
 
-@app.get("/api/providers/", tags=["providers"])
+@app.get("/providers/", tags=["providers"])
 async def read_providers(request: Request):
     return await proxy_request(request, "provider", "providers/")
 
-@app.get("/api/providers/available/", tags=["providers"])
+@app.get("/providers/{provider_id}", tags=["providers"])
+async def read_provider(request: Request, provider_id: int):
+    return await proxy_request(request, "provider", f"providers/{provider_id}")
+
+@app.get("/providers/available/", tags=["providers"])
 async def read_available_providers(request: Request):
     return await proxy_request(request, "provider", "providers/available/")
 
+@app.get("/providers/type/{type}", tags=["providers"])
+async def read_provider_by_type(request: Request, type: str):
+    return await proxy_request(request, "provider", f"providers/type/{type}")
+
 # Routes pour les services de transport
-@app.post("/api/transports/", tags=["transports"])
+@app.post("/transports/", tags=["transports"])
 async def create_transport(request: Request):
     return await proxy_request(request, "transport", "transports/")
 
-@app.get("/api/transports/", tags=["transports"])
+@app.get("/transports/", tags=["transports"])
 async def read_transports(request: Request):
     return await proxy_request(request, "transport", "transports/")
 
-@app.get("/api/orders/{order_id}/transport", tags=["transports"])
+@app.get("/orders/{order_id}/transport", tags=["transports"])
 async def read_order_transport(request: Request, order_id: int):
     return await proxy_request(request, "transport", f"orders/{order_id}/transport")
 
 # Routes pour les services de déménagement
-@app.post("/api/movings/", tags=["movings"])
+@app.post("/movings/", tags=["movings"])
 async def create_moving(request: Request):
     return await proxy_request(request, "moving", "movings/")
 
-@app.get("/api/movings/", tags=["movings"])
+@app.get("/movings/", tags=["movings"])
 async def read_movings(request: Request):
     return await proxy_request(request, "moving", "movings/")
 
-@app.get("/api/orders/{order_id}/moving", tags=["movings"])
+@app.get("/orders/{order_id}/moving", tags=["movings"])
 async def read_order_moving(request: Request, order_id: int):
     return await proxy_request(request, "moving", f"orders/{order_id}/moving")
 
 # Routes pour les services de nettoyage
-@app.post("/api/cleanings/", tags=["cleanings"])
+@app.post("/cleanings/", tags=["cleanings"])
 async def create_cleaning(request: Request):
     return await proxy_request(request, "cleaning", "cleanings/")
 
-@app.get("/api/cleanings/", tags=["cleanings"])
+@app.get("/cleanings/", tags=["cleanings"])
 async def read_cleanings(request: Request):
     return await proxy_request(request, "cleaning", "cleanings/")
 
-@app.get("/api/orders/{order_id}/cleaning", tags=["cleanings"])
+@app.get("/orders/{order_id}/cleaning", tags=["cleanings"])
 async def read_order_cleaning(request: Request, order_id: int):
     return await proxy_request(request, "cleaning", f"orders/{order_id}/cleaning")
 
 # Routes pour les services de dépannage
-@app.post("/api/repairs/", tags=["repairs"])
+@app.post("/repairs/", tags=["repairs"])
 async def create_repair(request: Request):
     return await proxy_request(request, "repair", "repairs/")
 
-@app.get("/api/repairs/", tags=["repairs"])
+@app.get("/repairs/", tags=["repairs"])
 async def read_repairs(request: Request):
     return await proxy_request(request, "repair", "repairs/")
 
-@app.get("/api/orders/{order_id}/repair", tags=["repairs"])
+@app.get("/orders/{order_id}/repair", tags=["repairs"])
 async def read_order_repair(request: Request, order_id: int):
     return await proxy_request(request, "repair", f"orders/{order_id}/repair")
 
 # Routes pour les services de garde d'enfant
-@app.post("/api/child-assistances/", tags=["child_assistances"])
+@app.post("/child-assistances/", tags=["child_assistances"])
 async def create_child_assistance(request: Request):
     return await proxy_request(request, "child_assistance", "child-assistances/")
 
-@app.get("/api/child-assistances/", tags=["child_assistances"])
+@app.get("/child-assistances/", tags=["child_assistances"])
 async def read_child_assistances(request: Request):
     return await proxy_request(request, "child_assistance", "child-assistances/")
 
-@app.get("/api/orders/{order_id}/child-assistance", tags=["child_assistances"])
+@app.get("/orders/{order_id}/child-assistance", tags=["child_assistances"])
 async def read_order_child_assistance(request: Request, order_id: int):
     return await proxy_request(request, "child_assistance", f"orders/{order_id}/child-assistance")
 

@@ -4,16 +4,17 @@ from typing import Optional, List
 
 # OrderService schemas
 class OrderBase(BaseModel):
-    user_id: int
-    service_type: str
-    latitude: float
-    longitude: float
+    id_user: int
+    id_provider: int
+    status: str = "en cours"
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
-    @validator('service_type')
-    def validate_service_type(cls, v):
-        allowed_types = ['transport', 'nettoyage', 'dépannage', 'garde enfant', 'déménagement']
-        if v not in allowed_types:
-            raise ValueError(f'Le type de service doit être l\'un des suivants: {", ".join(allowed_types)}')
+    @validator('status')
+    def validate_status(cls, v):
+        allowed_statuses = ['en cours', 'terminé', 'annulé']
+        if v not in allowed_statuses:
+            raise ValueError(f'Le statut doit être l\'un des suivants: {", ".join(allowed_statuses)}')
         return v
 
 class OrderCreate(OrderBase):
@@ -21,7 +22,7 @@ class OrderCreate(OrderBase):
 
 class OrderUpdate(BaseModel):
     status: Optional[str] = None
-
+    
     @validator('status')
     def validate_status(cls, v):
         if v is not None:
@@ -32,8 +33,9 @@ class OrderUpdate(BaseModel):
 
 class OrderResponse(OrderBase):
     id: int
-    status: str
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
+        from_attributes = True

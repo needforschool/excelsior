@@ -4,32 +4,24 @@ from typing import Optional, List
 
 # ChildAssistanceService schemas
 class ChildAssistanceBase(BaseModel):
-    order_id: int
-    guardian_name: str
+    id_order: int
+    id_provider: int
     child_count: int = Field(..., gt=0)
-    destination: str
+    experience: str
+    availability: bool = True
 
 class ChildAssistanceCreate(ChildAssistanceBase):
     pass
 
 class ChildAssistanceUpdate(BaseModel):
-    guardian_name: Optional[str] = None
     child_count: Optional[int] = None
-    destination: Optional[str] = None
-    status: Optional[str] = None
-
-    @validator('status')
-    def validate_status(cls, v):
-        if v is not None:
-            allowed_statuses = ['en cours', 'terminé', 'annulé']
-            if v not in allowed_statuses:
-                raise ValueError(f'Le statut doit être l\'un des suivants: {", ".join(allowed_statuses)}')
-        return v
+    experience: Optional[str] = None
+    availability: Optional[bool] = None
 
 class ChildAssistanceResponse(ChildAssistanceBase):
     id: int
-    status: str
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated from orm_mode which is deprecated

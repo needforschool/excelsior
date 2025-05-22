@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from app.database import Base
@@ -7,8 +7,10 @@ class Repair(Base):
     __tablename__ = "repairs"
     
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, nullable=False)
+    id_order = Column(Integer, nullable=False)
+    id_provider = Column(Integer, nullable=False)
     issue_type = Column(String, nullable=False)  # 'batterie', 'pneu', 'moteur', 'autre'
-    technician_name = Column(String)
-    status = Column(String, default='en route')  # 'en route', 'en cours', 'terminé', 'annulé'
+    expertise_level = Column(String, nullable=False)
+    availability = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

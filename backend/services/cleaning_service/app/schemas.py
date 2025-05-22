@@ -4,9 +4,11 @@ from typing import Optional, List
 
 # CleaningService schemas
 class CleaningBase(BaseModel):
-    order_id: int
+    id_order: int
+    id_provider: int
     location_type: str
     cleaning_duration: int = Field(..., gt=0)
+    availability: bool = True
 
     @validator('location_type')
     def validate_location_type(cls, v):
@@ -21,15 +23,7 @@ class CleaningCreate(CleaningBase):
 class CleaningUpdate(BaseModel):
     location_type: Optional[str] = None
     cleaning_duration: Optional[int] = None
-    status: Optional[str] = None
-
-    @validator('status')
-    def validate_status(cls, v):
-        if v is not None:
-            allowed_statuses = ['préparation', 'en cours', 'terminé', 'annulé']
-            if v not in allowed_statuses:
-                raise ValueError(f'Le statut doit être l\'un des suivants: {", ".join(allowed_statuses)}')
-        return v
+    availability: Optional[bool] = None
 
     @validator('location_type')
     def validate_location_type(cls, v):
@@ -41,8 +35,8 @@ class CleaningUpdate(BaseModel):
 
 class CleaningResponse(CleaningBase):
     id: int
-    status: str
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated from orm_mode which is deprecated

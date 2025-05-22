@@ -8,20 +8,24 @@ def get_transport(db: Session, transport_id: int):
 
 def get_transport_by_order(db: Session, order_id: int):
     """Récupère un transport par l'ID de la commande associée"""
-    return db.query(Transport).filter(Transport.order_id == order_id).first()
+    return db.query(Transport).filter(Transport.id_order == order_id).first()
 
 def get_transports(db: Session, skip: int = 0, limit: int = 100):
     """Récupère une liste de transports avec pagination"""
     return db.query(Transport).offset(skip).limit(limit).all()
 
+def get_provider_transports(db: Session, provider_id: int, skip: int = 0, limit: int = 100):
+    """Récupère une liste de transports d'un prestataire"""
+    return db.query(Transport).filter(Transport.id_provider == provider_id).offset(skip).limit(limit).all()
+
 def create_transport(db: Session, transport: TransportCreate):
     """Crée un nouveau transport"""
     db_transport = Transport(
-        order_id=transport.order_id,
+        id_order=transport.id_order,
+        id_provider=transport.id_provider,
         vehicle_type=transport.vehicle_type,
-        driver_name=transport.driver_name,
-        driver_contact=transport.driver_contact,
-        status="en route"
+        license_plate=transport.license_plate,
+        availability=transport.availability
     )
     db.add(db_transport)
     db.commit()

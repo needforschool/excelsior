@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from sqlalchemy.orm import Session
-from typing import List, Literal
+from typing import List, Literal, Dict, Any
 import asyncio
 
-from app.schemas import ProviderCreate, ProviderResponse, ProviderUpdate
+from app.schemas import (
+    ProviderCreate, ProviderResponse, ProviderUpdate, 
+    NearbyProviderResponse, NearbySearchParams
+)
 from app.crud import (
     get_provider, get_providers, get_available_providers, get_provider_by_user_id, create_provider, 
-    update_provider, delete_provider, get_providers_by_type, get_available_providers_by_type
+    update_provider, delete_provider, get_providers_by_type, get_available_providers_by_type,
+    find_providers_nearby, sync_providers_to_redis
 )
 from app.database import get_db
 from app.api.users_client import fetch_user
@@ -14,11 +18,28 @@ from app.api.users_client import fetch_user
 router = APIRouter()
 
 @router.post("/providers/", response_model=ProviderResponse)
-def create_new_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
+async def create_new_provider(provider: ProviderCreate, db: Session = Depends(get_db)):
     db_provider = get_provider_by_user_id(db, id_user=provider.id_user)
     if db_provider:
         raise HTTPException(status_code=400, detail="Provider déjà enregistré pour cet utilisateur")
-    return create_provider(db=db, provider=provider)
+    
+    # Créer le fournisseur
+    created_provider = create_provider(db=db, provider=provider)
+    
+    # Récupérer les informations de l'utilisateur
+    user_data = await fetch_user(created_provider.id_user)
+    
+    # Construire la réponse complète
+    return ProviderResponse(
+        id=created_provider.id,
+        id_user=created_provider.id_user,
+        type=created_provider.type,
+        latitude=created_provider.latitude,
+        longitude=created_provider.longitude,
+        created_at=created_provider.created_at,
+        updated_at=created_provider.updated_at,
+        user=user_data
+    )
 
 @router.get("/providers/", response_model=List[ProviderResponse])
 async def read_providers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -64,11 +85,25 @@ async def read_provider(provider_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/providers/{provider_id}", response_model=ProviderResponse)
-def update_provider_info(provider_id: int, provider_data: ProviderUpdate, db: Session = Depends(get_db)):
+async def update_provider_info(provider_id: int, provider_data: ProviderUpdate, db: Session = Depends(get_db)):
     db_provider = update_provider(db, provider_id=provider_id, provider_data=provider_data)
     if db_provider is None:
         raise HTTPException(status_code=404, detail="Prestataire non trouvé")
-    return db_provider
+    
+    # Récupérer les informations de l'utilisateur
+    user_data = await fetch_user(db_provider.id_user)
+    
+    # Construire la réponse complète
+    return ProviderResponse(
+        id=db_provider.id,
+        id_user=db_provider.id_user,
+        type=db_provider.type,
+        latitude=db_provider.latitude,
+        longitude=db_provider.longitude,
+        created_at=db_provider.created_at,
+        updated_at=db_provider.updated_at,
+        user=user_data
+    )
 
 @router.delete("/providers/{provider_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_provider_endpoint(provider_id: int, db: Session = Depends(get_db)):
@@ -120,3 +155,102 @@ def read_available_providers_by_type(
 ):
     providers = get_available_providers_by_type(db, provider_type=provider_type, skip=skip, limit=limit)
     return providers
+
+@router.post("/providers/nearby/", response_model=List[NearbyProviderResponse])
+async def find_nearby_providers(
+    search_params: NearbySearchParams,
+    db: Session = Depends(get_db)
+):
+    """
+    Trouve les fournisseurs à proximité d'une position géographique donnée.
+    """
+    nearby_providers = find_providers_nearby(
+        db=db,
+        latitude=search_params.latitude,
+        longitude=search_params.longitude,
+        radius=search_params.radius,
+        provider_type=search_params.provider_type,
+        limit=search_params.limit
+    )
+    
+    print(f"CRUD returned providers: {nearby_providers}")
+    
+    if not nearby_providers:
+        return []
+    
+    # Enrichir les résultats avec les données utilisateur
+    results = []
+    for provider in nearby_providers:
+        try:
+            # Essayer de récupérer les informations utilisateur
+            user_data = await fetch_user(provider["id_user"])
+            
+            # Construire la réponse avec les données de l'utilisateur et la distance
+            provider_response = NearbyProviderResponse(
+                id=provider["id"],
+                id_user=provider["id_user"],
+                type=provider["type"],
+                latitude=provider["latitude"],
+                longitude=provider["longitude"],
+                distance=provider["distance"],
+                created_at=provider["created_at"],
+                updated_at=provider["updated_at"],
+                user=user_data
+            )
+            results.append(provider_response)
+        except Exception as e:
+            print(f"Error fetching user data for provider {provider['id']}: {e}")
+            # Si nous ne pouvons pas obtenir les données utilisateur, nous passons au suivant
+            # Dans un environnement de production, nous pourrions vouloir inclure l'entrée
+            # avec un placeholder pour l'utilisateur, mais pour notre POC nous le sautons
+            continue
+    
+    # Trier par distance (devrait déjà être trié, mais pour être sûr)
+    results.sort(key=lambda x: x.distance)
+    
+    print(f"Final results count: {len(results)}")
+    return results
+
+# Endpoint simplifié pour le test sans dépendance au service utilisateur
+@router.post("/providers/nearby-simple/")
+def find_nearby_providers_simple(
+    search_params: NearbySearchParams,
+    db: Session = Depends(get_db)
+):
+    """
+    Version simplifiée qui trouve les fournisseurs à proximité d'une position géographique donnée
+    sans dépendre du service utilisateur.
+    """
+    nearby_providers = find_providers_nearby(
+        db=db,
+        latitude=search_params.latitude,
+        longitude=search_params.longitude,
+        radius=search_params.radius,
+        provider_type=search_params.provider_type,
+        limit=search_params.limit
+    )
+    
+    print(f"CRUD returned providers: {nearby_providers}")
+    
+    if not nearby_providers:
+        return []
+    
+    # Convertir les dates en chaînes pour la sérialisation JSON
+    for provider in nearby_providers:
+        if "created_at" in provider:
+            provider["created_at"] = provider["created_at"].isoformat()
+        if "updated_at" in provider:
+            provider["updated_at"] = provider["updated_at"].isoformat()
+    
+    return nearby_providers
+
+@router.post("/providers/sync-redis/", status_code=status.HTTP_200_OK)
+def sync_redis_geolocation(db: Session = Depends(get_db)):
+    """
+    Synchronise tous les fournisseurs de la base de données vers Redis.
+    Utile pour initialiser ou réinitialiser le cache Redis.
+    """
+    result = sync_providers_to_redis(db)
+    return {
+        "detail": f"Synchronisation terminée. {result['synced']}/{result['total']} fournisseurs synchronisés."
+    }

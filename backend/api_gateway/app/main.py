@@ -313,7 +313,7 @@ async def read_order(request: Request, order_id: int):
     return await proxy_request(request, "order", f"orders/{order_id}")
 
 
-@ app.get(
+@app.get(
     "/users/{user_id}/orders-enriched/",
     response_model=List[OrderEnriched],
     tags=["orders"]

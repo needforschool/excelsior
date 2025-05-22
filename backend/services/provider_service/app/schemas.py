@@ -20,7 +20,7 @@ class ProviderBase(BaseModel):
     type: Literal['transport','cleaning','repair','childcare','moving']
     latitude: float
     longitude: float
-    availability: bool = True  # Ajout du champ availability avec True comme valeur par défaut
+
 
 class ProviderCreate(ProviderBase):
     pass

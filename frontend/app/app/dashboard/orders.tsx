@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
     View,
     StyleSheet,
-    Dimensions,
     FlatList,
     SafeAreaView,
 } from 'react-native';
@@ -16,7 +15,7 @@ import {
     useTheme,
     ActivityIndicator,
 } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { useApi } from '@/lib/api';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -168,7 +167,6 @@ export default function MesCommandesScreen() {
                                 <Card style={styles.card}>
                                     <Card.Content style={styles.cardContent}>
                                         <View style={styles.left}>
-                                            {/* Type*/}
                                             <Text style={styles.service}>{getServiceName(item.provider.type)}</Text>
                                             <Text style={styles.service}>{item.provider.name}</Text>
                                             <Text style={styles.date}>{item.date}</Text>d
@@ -179,7 +177,7 @@ export default function MesCommandesScreen() {
                                                     styles.statusChip,
                                                     { backgroundColor: badgeColor},
                                                 ]}
-                                                textStyle={{ color: badgeColor, fontWeight: '600' }}
+                                                textStyle={{ color: "white", fontWeight: '600' }}
                                             >
                                                 {item.status}
                                             </Chip>

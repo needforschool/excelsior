@@ -20,7 +20,11 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token,
     isClient: (state) => state.user?.role === 'client',
-    isProvider: (state) => state.user?.role === 'prestataire'
+    isProvider: (state) => state.user?.role === 'prestataire',
+    fullName: (state) => {
+      if (!state.user) return ''
+      return `${state.user.firstName} ${state.user.lastName}`.trim()
+    }
   },
   
   actions: {
@@ -119,7 +123,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    async register(name: string, email: string, password: string, role: 'client' | 'prestataire') {
+    async register(firstName: string, lastName: string, email: string, password: string, role: 'client' | 'prestataire') {
       const { useUserService } = await import('~/services/user')
       const userService = useUserService()
       
@@ -128,7 +132,8 @@ export const useAuthStore = defineStore('auth', {
       
       try {
         const response = await userService.register({
-          name,
+          firstName,
+          lastName,
           email,
           password,
           role

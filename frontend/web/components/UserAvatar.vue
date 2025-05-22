@@ -13,7 +13,7 @@
       <img 
         v-if="avatar" 
         :src="avatar" 
-        :alt="user.name" 
+        :alt="fullName" 
         class="object-cover w-full h-full rounded-full" 
       />
       <span v-else>{{ userInitials }}</span>
@@ -24,7 +24,7 @@
         class="font-medium"
         :class="size === 'small' ? 'text-xs' : (size === 'large' ? 'text-base' : 'text-sm')"
       >
-        {{ user.name }}
+        {{ fullName }}
       </p>
       <p 
         v-if="showEmail" 
@@ -80,13 +80,18 @@ const props = defineProps({
   }
 })
 
+// Nom complet de l'utilisateur
+const fullName = computed(() => {
+  if (!props.user) return ''
+  return `${props.user.firstName} ${props.user.lastName}`.trim()
+})
+
 // Calcul des initiales de l'utilisateur
 const userInitials = computed(() => {
   if (!props.user) return ''
   
-  const firstInitial = props.user.name ? props.user.name.split(' ')[0][0] : ''
-  const lastNamePart = props.user.name.split(' ')[1]
-  const lastInitial = lastNamePart ? lastNamePart[0] : ''
+  const firstInitial = props.user.firstName ? props.user.firstName[0] : ''
+  const lastInitial = props.user.lastName ? props.user.lastName[0] : ''
   
   return (firstInitial + lastInitial).toUpperCase()
 })

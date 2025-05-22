@@ -18,14 +18,26 @@
           <h2 class="mb-4 text-xl font-semibold">Informations personnelles</h2>
           
           <form @submit.prevent="updateProfile" class="space-y-4">
-            <div>
-              <Label for="name">Nom complet</Label>
-              <Input 
-                id="name" 
-                v-model="profileForm.name"
-                placeholder="Votre nom complet"
-                class="mt-1"
-              />
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label for="firstName">Prénom</Label>
+                <Input 
+                  id="firstName" 
+                  v-model="profileForm.firstName"
+                  placeholder="Votre prénom"
+                  class="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label for="lastName">Nom</Label>
+                <Input 
+                  id="lastName" 
+                  v-model="profileForm.lastName"
+                  placeholder="Votre nom"
+                  class="mt-1"
+                />
+              </div>
             </div>
             
             <div>
@@ -130,7 +142,7 @@
               <LucidePencil class="w-4 h-4" />
             </Button>
           </div>
-          <h3 class="text-lg font-semibold">{{ profileForm.name }}</h3>
+          <h3 class="text-lg font-semibold">{{ fullName }}</h3>
           <p class="text-sm text-muted-foreground">Membre depuis {{ memberSince }}</p>
         </div>
         
@@ -264,7 +276,8 @@ const error = ref(null)
 
 // État du formulaire de profil
 const profileForm = ref({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   phone: '',
   address: '',
@@ -300,7 +313,8 @@ const fetchCurrentUser = async () => {
     // Maintenant, vérifions si l'utilisateur est disponible
     if (authStore.user) {
       // Charger les données dans le formulaire
-      profileForm.value.name = authStore.user.name || ''
+      profileForm.value.firstName = authStore.user.firstName || ''
+      profileForm.value.lastName = authStore.user.lastName || ''
       profileForm.value.email = authStore.user.email || ''
       
       // Ces données ne sont pas directement dans l'utilisateur, mais pourraient être ajoutées ultérieurement
@@ -318,14 +332,20 @@ const fetchCurrentUser = async () => {
   }
 }
 
+// Nom complet de l'utilisateur
+const fullName = computed(() => {
+  return `${profileForm.value.firstName} ${profileForm.value.lastName}`.trim()
+})
+
 // Calcul des initiales de l'utilisateur
 const userInitials = computed(() => {
-  const name = profileForm.value.name || ''
-  if (!name) return ''
+  const firstName = profileForm.value.firstName || ''
+  const lastName = profileForm.value.lastName || ''
   
-  const nameParts = name.split(' ')
-  const firstInitial = nameParts[0] ? nameParts[0][0] : ''
-  const lastInitial = nameParts.length > 1 ? nameParts[1][0] : ''
+  if (!firstName) return ''
+  
+  const firstInitial = firstName[0] || ''
+  const lastInitial = lastName ? lastName[0] : ''
   
   return (firstInitial + lastInitial).toUpperCase()
 })
@@ -357,7 +377,8 @@ const updateProfile = async () => {
   try {
     // Préparation des données à envoyer
     const userData = {
-      name: profileForm.value.name,
+      firstName: profileForm.value.firstName,
+      lastName: profileForm.value.lastName,
       phone: profileForm.value.phone,
       address: profileForm.value.address
     }

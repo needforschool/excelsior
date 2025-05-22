@@ -3,10 +3,14 @@ import { useApi } from '~/lib/api'
 
 export interface User {
   id: number
-  name: string
+  firstName: string
+  lastName: string
   email: string
   role: 'client' | 'prestataire'
   created_at: string
+  phone?: string
+  address?: string
+  avatar?: string
 }
 
 export interface AuthResponse {

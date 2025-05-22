@@ -108,8 +108,7 @@ services:
       - SERVICE_PORT=8003
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - TOKEN_TYPE=${TOKEN_TYPE}
-      - STRIPE_SECRET_KEY=SECRET
-      - STRIPE_PUBLISHABLE_KEY=SECRET
+
 
   # Notification Service
   notification_service:

@@ -25,7 +25,7 @@ def create_child_assistance(db: Session, child_assistance: ChildAssistanceCreate
         id_provider=child_assistance.id_provider,
         child_count=child_assistance.child_count,
         experience=child_assistance.experience,
-        availability=child_assistance.availability
+        availabilities=child_assistance.availabilities
     )
     db.add(db_child_assistance)
     db.commit()
@@ -51,3 +51,7 @@ def delete_child_assistance(db: Session, child_assistance_id: int):
         db.commit()
         return True
     return False
+
+def get_child_assistance_by_provider(db: Session, id_provider: int):
+    """Récupère un service de garde d'enfant par le fournisseur"""
+    return db.query(ChildAssistance).filter(ChildAssistance.id_provider == id_provider).all()

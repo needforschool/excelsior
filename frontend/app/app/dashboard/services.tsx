@@ -1,8 +1,9 @@
 
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Card, Title, Paragraph, useTheme, IconButton } from 'react-native-paper';
+import {Card, Title, Paragraph, useTheme, IconButton, Appbar} from 'react-native-paper';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from "react";
 
 type Service = {
     id: string;
@@ -76,6 +77,9 @@ export default function ServicesScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <Appbar.Header elevated>
+                <Appbar.Content title={`Services`} />
+            </Appbar.Header>
             <FlatList
                 data={mockServices}
                 keyExtractor={(item) => item.id}

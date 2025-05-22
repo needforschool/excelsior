@@ -5,13 +5,18 @@ import Landing from '@/screens/Landing';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
-    const { isLoading, isAuthenticated } = useAuth();
+    const { isLoading, isAuthenticated, user } = useAuth();
     const router = useRouter();
 
-    // Si on est déjà connecté, on va direct /dashboard
     useEffect(() => {
         if (!isLoading && isAuthenticated) {
-            router.replace('/dashboard');
+            if (user?.role === 'client') {
+                router.replace('/dashboard');
+            } else if (user?.role === 'provider') {
+                router.replace('/prestataire');
+            } else {
+                console.warn('Unknown user role:', user?.role);
+            }
         }
     }, [isLoading, isAuthenticated]);
 

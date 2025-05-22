@@ -7,19 +7,29 @@ export const SecurityForm: React.FC = () => {
     const theme = useTheme();
     const { apiFetch } = useApi();
     const [modalVisible, setModalVisible] = React.useState(false);
-    const [oldPwd, setOldPwd]   = React.useState('');
-    const [newPwd, setNewPwd]   = React.useState('');
+    const [oldPwd, setOldPwd] = React.useState('');
+    const [newPwd, setNewPwd] = React.useState('');
+    const [confirmPwd, setConfirmPwd] = React.useState('');
     const [loading, setLoading] = React.useState(false);
 
-    const openModal  = () => setModalVisible(true);
+    const openModal = () => setModalVisible(true);
     const closeModal = () => {
         setOldPwd('');
         setNewPwd('');
+        setConfirmPwd('');
         setModalVisible(false);
     };
 
+    const passwordsMatch = newPwd === confirmPwd;
+    const canConfirm = !loading && oldPwd && newPwd && confirmPwd && passwordsMatch;
+
     const handleChangePwd = async () => {
         setLoading(true);
+        if (!passwordsMatch) {
+            alert('Les nouveaux mots de passe ne correspondent pas');
+            setLoading(false);
+            return;
+        }
         try {
             await apiFetch('/users/me/password', {
                 method: 'POST',
@@ -59,10 +69,10 @@ export const SecurityForm: React.FC = () => {
                     ]}
                 >
                     <Text variant="titleSmall" style={styles.modalTitle}>
-                        Nouveau mot de passe
+                        Changement de mot de passe
                     </Text>
                     <TextInput
-                        label="Actuel"
+                        label="Mot de passe actuel"
                         secureTextEntry
                         value={oldPwd}
                         onChangeText={setOldPwd}
@@ -70,19 +80,32 @@ export const SecurityForm: React.FC = () => {
                         style={styles.input}
                     />
                     <TextInput
-                        label="Nouveau"
+                        label="Nouveau mot de passe"
                         secureTextEntry
                         value={newPwd}
                         onChangeText={setNewPwd}
                         mode="outlined"
                         style={styles.input}
                     />
+                    <TextInput
+                        label="Confirmer le nouveau mot de passe"
+                        secureTextEntry
+                        value={confirmPwd}
+                        onChangeText={setConfirmPwd}
+                        mode="outlined"
+                        style={styles.input}
+                    />
+                    {confirmPwd.length > 0 && !passwordsMatch && (
+                        <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                            Les mots de passe ne correspondent pas
+                        </Text>
+                    )}
                     <View style={styles.modalButtons}>
                         <Button
                             mode="contained"
                             onPress={handleChangePwd}
                             loading={loading}
-                            disabled={loading || !oldPwd || !newPwd}
+                            disabled={!canConfirm}
                             style={styles.modalButton}
                         >
                             Confirmer
@@ -109,6 +132,7 @@ const styles = StyleSheet.create({
     modalContainer: { margin: 20, padding: 20, borderRadius: 8 },
     modalTitle: { marginBottom: 16, fontWeight: '600' },
     input: { marginBottom: 12 },
+    errorText: { marginBottom: 12 },
     modalButtons: { flexDirection: 'row', justifyContent: 'flex-end' },
     modalButton: { marginLeft: 8 },
 });

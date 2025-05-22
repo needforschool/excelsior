@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas import CleaningCreate, CleaningResponse, CleaningUpdate
-from app.crud import get_cleaning, get_cleanings, get_cleaning_by_order, create_cleaning, update_cleaning, delete_cleaning
+from app.crud import get_cleaning, get_cleanings, get_cleaning_by_order, create_cleaning, update_cleaning, delete_cleaning, get_cleaning_by_provider
 from app.database import get_db
 
 router = APIRouter()
@@ -15,6 +15,13 @@ def create_new_cleaning(cleaning: CleaningCreate, db: Session = Depends(get_db))
 @router.get("/cleanings/", response_model=List[CleaningResponse])
 def read_cleanings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     cleanings = get_cleanings(db, skip=skip, limit=limit)
+    return cleanings
+
+@router.get("/cleanings/provider/{provider_id}", response_model=List[CleaningResponse])
+def get_provider_cleanings(provider_id: int, db: Session = Depends(get_db)):
+    cleanings = get_cleaning_by_provider(db, id_provider=provider_id)
+    if cleanings is None:
+        raise HTTPException(status_code=404, detail="Aucun service de nettoyage trouvé pour ce fournisseur")
     return cleanings
 
 @router.get("/cleanings/{cleaning_id}", response_model=CleaningResponse)

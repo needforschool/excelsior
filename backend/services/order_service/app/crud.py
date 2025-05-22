@@ -20,9 +20,12 @@ def get_provider_orders(db: Session, provider_id: int, skip: int = 0, limit: int
 
 def create_order(db: Session, order: OrderCreate):
     """Crée une nouvelle commande"""
+    print("Creating order:", order)
     db_order = Order(
         id_user=order.id_user,
         id_provider=order.id_provider,
+        service_type=order.service_type,
+        id_service=order.id_service,
         status=order.status,
         latitude=order.latitude,
         longitude=order.longitude
@@ -51,3 +54,7 @@ def delete_order(db: Session, order_id: int):
         db.commit()
         return True
     return False
+
+def get_order_by_provider(db: Session, id_provider: int):
+    """Récupère une commande par le fournisseur"""
+    return db.query(Order).filter(Order.id_provider == id_provider).all()

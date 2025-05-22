@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, constr
 from datetime import datetime
 from typing import Optional, List
 
@@ -36,7 +36,7 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
-      
+
 class TokenData(BaseModel):
     email: str | None = None
 
@@ -47,3 +47,7 @@ class ContactRequest(BaseModel):
     name: str
     email: EmailStr
     message: str
+
+class ChangePassword(BaseModel):
+    old_password: constr(min_length=8)
+    new_password: constr(min_length=8)

@@ -25,7 +25,7 @@ def create_cleaning(db: Session, cleaning: CleaningCreate):
         id_provider=cleaning.id_provider,
         location_type=cleaning.location_type,
         cleaning_duration=cleaning.cleaning_duration,
-        availability=cleaning.availability
+        availabilities=cleaning.availabilities
     )
     db.add(db_cleaning)
     db.commit()
@@ -51,3 +51,7 @@ def delete_cleaning(db: Session, cleaning_id: int):
         db.commit()
         return True
     return False
+
+def get_cleaning_by_provider(db: Session, id_provider: int):
+    """Récupère un service de nettoyage par le fournisseur"""
+    return db.query(Cleaning).filter(Cleaning.id_provider == id_provider).all()

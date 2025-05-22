@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
+from typing import Dict
 
 # TransportService schemas
 class TransportBase(BaseModel):
-    id_order: int
+
     id_provider: int
     vehicle_type: str
     license_plate: str
-    availability: bool = True
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('vehicle_type')
     def validate_vehicle_type(cls, v):
@@ -23,7 +24,7 @@ class TransportCreate(TransportBase):
 class TransportUpdate(BaseModel):
     vehicle_type: Optional[str] = None
     license_plate: Optional[str] = None
-    availability: Optional[bool] = None
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('vehicle_type')
     def validate_vehicle_type(cls, v):

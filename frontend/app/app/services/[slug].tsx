@@ -8,7 +8,7 @@ import {
     Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Title, Paragraph, useTheme } from 'react-native-paper';
+import { Card, Title, Paragraph, useTheme, Appbar } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import Constants from 'expo-constants';
 import IProvider from "@/types/provider";
@@ -18,6 +18,7 @@ const apiUrl = Constants.expoConfig?.extra?.API_URL;
 async function fetchProviders(slug: string) {
     const response = await fetch(`${apiUrl}/providers/type/${slug}`);
     const data = await response.json();
+    console.log('API response:', data);
     if (!response.ok) {
         throw new Error(data.detail || 'Erreur réseau');
     }
@@ -47,7 +48,7 @@ export default function ServiceProvidersScreen() {
         (async () => {
             try {
                 const data = await fetchProviders(slug);
-                console.log(data);
+                // console.log(data);
                 setProviders(data);
             } catch (err: any) {
                 setError(err.message);
@@ -81,11 +82,11 @@ export default function ServiceProvidersScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: theme.colors.text }]}>
-                    Prestataires pour {slugToName(slug)}
-                </Text>
-            </View>
+            {/* === HEADER BACK === */}
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.Content title={`Prestataires: ${slugToName(slug)}`} />
+            </Appbar.Header>
 
             <FlatList
                 data={providers}
@@ -102,10 +103,14 @@ export default function ServiceProvidersScreen() {
                         <Card elevation={4} style={styles.card}>
                             <Card.Content>
                                 <Title style={{ color: theme.colors.primary }}>
-                                    {item.user.firstName} {item.user.lastName}
+                                    {item.name}
+
                                 </Title>
+                                <Paragraph style={{ color: theme.colors.text, fontSize: 12 }}>
+                                    {item.user.firstName} {item.user.lastName}
+                                </Paragraph>
                                 <Paragraph style={{ color: theme.colors.text }}>
-                                    {item.user.email}
+                                    {item.description}
                                 </Paragraph>
                             </Card.Content>
                         </Card>

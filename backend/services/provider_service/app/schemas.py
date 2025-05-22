@@ -7,23 +7,29 @@ class UserInfo(BaseModel):
     lastName: str
     firstName: str
     email: str
-    phone: str
+    phone: Optional[str] = None  # Modifié pour être facultatif
 
     class Config:
         from_attributes = True
 
 class ProviderBase(BaseModel):
     id_user: int
+    name: str
+    description: Optional[str] = None
+    short_description: Optional[str] = None
     type: Literal['transport','cleaning','repair','childcare','moving']
     latitude: float
     longitude: float
-    availability: bool = True  # Ajout du champ availability avec True comme valeur par défaut
+
 
 class ProviderCreate(ProviderBase):
     pass
 
 class ProviderUpdate(BaseModel):
     type: Optional[Literal['transport','cleaning','repair','childcare','moving']] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    short_description: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
@@ -32,6 +38,7 @@ class ProviderResponse(ProviderBase):
     created_at: datetime
     updated_at: datetime
     user: UserInfo
+
 
     class Config:
         orm_mode = True

@@ -25,7 +25,7 @@ def create_repair(db: Session, repair: RepairCreate):
         id_provider=repair.id_provider,
         issue_type=repair.issue_type,
         expertise_level=repair.expertise_level,
-        availability=repair.availability
+        availabilities=repair.availabilities
     )
     db.add(db_repair)
     db.commit()
@@ -51,3 +51,7 @@ def delete_repair(db: Session, repair_id: int):
         db.commit()
         return True
     return False
+
+def get_repair_by_provider(db: Session, id_provider: int):
+    """Récupère un service de dépannage par le fournisseur"""
+    return db.query(Repair).filter(Repair.id_provider == id_provider).all()

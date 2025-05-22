@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, status, Form, Body
-from app.schemas import Token, UserResponse, LoginRequest
+from app.schemas import Token, UserResponse, LoginRequest, OrderEnriched
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
@@ -8,6 +8,7 @@ from typing import Dict, Any, List
 import json
 from fastapi.openapi.utils import get_openapi
 from fastapi.openapi.models import SecurityScheme as SecuritySchemeModel
+import asyncio
 
 # JWT Configuration
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"  # Match User Service secret key
@@ -136,42 +137,84 @@ async def health_check():
     return {"status": "ok", "services": results}
 
 # Fonction pour transférer les requêtes aux microservices
-async def proxy_request(request: Request, service: str, path: str):
+import json
+from fastapi import HTTPException, Request, Response, status
+from typing import Any
+
+async def proxy_request(request: Request, service: str, path: str) -> Any:
     if service not in SERVICE_URLS:
         raise HTTPException(status_code=404, detail=f"Service {service} non trouvé")
-        
+
+    # Auth
     auth_header = request.headers.get("Authorization")
-    if (auth_header and auth_header.startswith("Bearer ")):
+    if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         await verify_token(token)
 
+    # Construire l'URL cible
     service_url = SERVICE_URLS[service]
     target_url = f"{service_url}/{path}"
 
+    # Récupérer le body si nécessaire
     body = b""
-    if request.method in ["POST", "PUT", "PATCH"]:
+    if request.method in ("POST", "PUT", "PATCH"):
         body = await request.body()
 
+    # Reproduire les headers (sans host)
     headers = dict(request.headers)
     headers.pop("host", None)
 
+    # Reproduire les query params
     params = dict(request.query_params)
 
     try:
-        response = await http_client.request(
-            method=request.method,
-            url=target_url,
-            headers=headers,
-            params=params,
-            content=body,
-            timeout=30.0
+        resp = await http_client.request(
+            method  = request.method,
+            url     = target_url,
+            headers = headers,
+            params  = params,
+            content = body,
+            timeout = 30.0,
         )
-        print(f"Proxying to {target_url}, Response: {response.status_code}, {response.text}")  # Debug log
-        return json.loads(response.content) if response.content else {}
+        print(f"Proxying to {target_url} → {resp.status_code}")
+
+        # 1) No Content → on renvoie directement 204
+        if resp.status_code == status.HTTP_204_NO_CONTENT:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+        # 2) Si JSON (et un corps non vide), on parse
+        content_type = resp.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            try:
+                return resp.json()
+            except ValueError:
+                # JSON mal formé
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Réponse JSON mal formée depuis le service en aval"
+                )
+
+        # 3) Tout autre cas (texte, HTML, binaire) → on renvoie brut
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=content_type or "application/octet-stream"
+        )
+
     except httpx.RequestError as e:
-        raise HTTPException(status_code=503, detail=f"Erreur de connexion au service {service}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Erreur de connexion au service {service}: {str(e)}"
+        )
+    except HTTPException:
+        # Laisser remonter les 404/401/502 déjà levées
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur interne: {str(e)}")
+        # Autres erreurs inattendues
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur interne: {str(e)}"
+        )
 
 # Routes pour les utilisateurs
 # Removed duplicate definition of create_user to avoid conflicts
@@ -183,6 +226,11 @@ async def read_users(request: Request):
 @app.get("/users/me", tags=["users"])
 async def read_current_user(request: Request):
     return await proxy_request(request, "user", "users/me")
+
+@app.post("/users/me/password", tags=["users"])
+async def change_password(request: Request):
+    # On proxy en POST vers le user-service à /users/me/password
+    return await proxy_request(request, "user", "users/me/password")
 
 @app.get("/api/users/{user_id}", tags=["users"])
 async def read_user(request: Request, user_id: int):
@@ -249,19 +297,66 @@ async def register_user(request: Request, payload: dict = Body(...)):
 # Routes pour les commandes
 @app.post("/orders/", tags=["orders"])
 async def create_order(request: Request):
+    print("Creating order:", request)
     return await proxy_request(request, "order", "orders/")
 
 @app.get("/orders/", tags=["orders"])
 async def read_orders(request: Request):
     return await proxy_request(request, "order", "orders/")
 
+@app.get("/orders/provider/{provider_id}", tags=["orders"])
+async def read_provider_orders(request: Request, provider_id: int):
+    return await proxy_request(request, "order", f"orders/provider/{provider_id}")
+
 @app.get("/orders/{order_id}", tags=["orders"])
 async def read_order(request: Request, order_id: int):
     return await proxy_request(request, "order", f"orders/{order_id}")
 
+
+@app.get(
+    "/users/{user_id}/orders-enriched/",
+    response_model=List[OrderEnriched],
+    tags=["orders"]
+)
+async def read_user_orders_enriched(request: Request, user_id: int):
+    # 1) Récupère les orders bruts
+    orders = await proxy_request(request, "order", f"users/{user_id}/orders/")
+
+    # 2) Prépare un client httpx
+    async with httpx.AsyncClient() as client:
+        async def enrich(o):
+            # 2a) fetch provider
+            prov_resp    = await client.get(f"{SERVICE_URLS['provider']}/providers/{o['id_provider']}")
+            provider     = prov_resp.json()
+            # 2b) fetch service selon service_type
+            svc_url      = SERVICE_URLS[o['service_type']]
+            # conversion type → endpoint pluriel
+            plural = {
+                "transport": "transports",
+                "moving":    "movings",
+                "cleaning":  "cleanings",
+                "repair":    "repairs",
+                "childcare": "child-assistances"
+            }[o['service_type']]
+            svc_resp     = await client.get(f"{svc_url}/{plural}/{o['id_service']}")
+            service      = svc_resp.json()
+
+            # 2c) fusion
+            return {
+                **o,
+                "provider": provider,
+                "service":  service
+            }
+
+        # 3) paralléliser
+        enriched = await asyncio.gather(*(enrich(o) for o in orders))
+
+    return enriched
+
 @app.get("/users/{user_id}/orders/", tags=["orders"])
 async def read_user_orders(request: Request, user_id: int):
     return await proxy_request(request, "order", f"users/{user_id}/orders/")
+
 
 # Routes pour les paiements
 @app.post("/payments/", tags=["payments"])
@@ -275,6 +370,10 @@ async def read_payments(request: Request):
 @app.get("/payments/{payment_id}", tags=["payments"])
 async def read_payment(request: Request, payment_id: int):
     return await proxy_request(request, "payment", f"payments/{payment_id}")
+
+@app.post("/create-payment-intent")
+async def create_payment_intent(request: Request):
+    return await proxy_request(request, "payment", "create-payment-intent")
 
 @app.get("/orders/{order_id}/payment", tags=["payments"])
 async def read_order_payment(request: Request, order_id: int):
@@ -323,9 +422,18 @@ async def create_transport(request: Request):
 async def read_transports(request: Request):
     return await proxy_request(request, "transport", "transports/")
 
+@app.get("/transports/provider/{id_provider}", tags=["transports"])
+async def read_transports_by_provider(request: Request, id_provider: int):
+    return await proxy_request(request, "transport", f"transports/provider/{id_provider}")
+
+@app.get("/transports/{transport_id}", tags=["transports"])
+async def read_transport(request: Request, transport_id: int):
+    return await proxy_request(request, "transport", f"transports/{transport_id}")
+
 @app.get("/orders/{order_id}/transport", tags=["transports"])
 async def read_order_transport(request: Request, order_id: int):
     return await proxy_request(request, "transport", f"orders/{order_id}/transport")
+
 
 # Routes pour les services de déménagement
 @app.post("/movings/", tags=["movings"])
@@ -340,10 +448,18 @@ async def read_movings(request: Request):
 async def read_order_moving(request: Request, order_id: int):
     return await proxy_request(request, "moving", f"orders/{order_id}/moving")
 
+@app.get("/movings/provider/{id_provider}", tags=["movings"])
+async def read_movings_by_provider(request: Request, id_provider: int):
+    return await proxy_request(request, "moving", f"movings/provider/{id_provider}")
+
 # Routes pour les services de nettoyage
 @app.post("/cleanings/", tags=["cleanings"])
 async def create_cleaning(request: Request):
     return await proxy_request(request, "cleaning", "cleanings/")
+
+@app.get("/cleanings/provider/{id_provider}", tags=["cleanings"])
+async def read_cleanings_by_provider(request: Request, id_provider: int):
+    return await proxy_request(request, "cleaning", f"cleanings/provider/{id_provider}")
 
 @app.get("/cleanings/", tags=["cleanings"])
 async def read_cleanings(request: Request):
@@ -358,6 +474,10 @@ async def read_order_cleaning(request: Request, order_id: int):
 async def create_repair(request: Request):
     return await proxy_request(request, "repair", "repairs/")
 
+@app.get("/repairs/provider/{id_provider}", tags=["repairs"])
+async def read_repairs_by_provider(request: Request, id_provider: int):
+    return await proxy_request(request, "repair", f"repairs/provider/{id_provider}")
+
 @app.get("/repairs/", tags=["repairs"])
 async def read_repairs(request: Request):
     return await proxy_request(request, "repair", "repairs/")
@@ -370,6 +490,10 @@ async def read_order_repair(request: Request, order_id: int):
 @app.post("/child-assistances/", tags=["child_assistances"])
 async def create_child_assistance(request: Request):
     return await proxy_request(request, "child_assistance", "child-assistances/")
+
+@app.get("/child-assistances/provider/{id_provider}", tags=["child_assistances"])
+async def read_provider_child_assistances(request: Request, id_provider: int):
+    return await proxy_request(request, "child_assistance", f"child-assistances/provider/{id_provider}")
 
 @app.get("/child-assistances/", tags=["child_assistances"])
 async def read_child_assistances(request: Request):

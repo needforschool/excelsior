@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
-
+from typing import Dict
 # MovingService schemas
 class MovingBase(BaseModel):
-    id_order: int
+
     id_provider: int
     activity_range: str
     team_size: int = Field(..., gt=0)
     truck_size: str
-    availability: bool = True
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('truck_size')
     def validate_truck_size(cls, v):
@@ -25,7 +25,7 @@ class MovingUpdate(BaseModel):
     activity_range: Optional[str] = None
     team_size: Optional[int] = None
     truck_size: Optional[str] = None
-    availability: Optional[bool] = None
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('truck_size')
     def validate_truck_size(cls, v):

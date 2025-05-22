@@ -1,14 +1,14 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
-
+from typing import Dict
 # ChildAssistanceService schemas
 class ChildAssistanceBase(BaseModel):
-    id_order: int
+
     id_provider: int
     child_count: int = Field(..., gt=0)
     experience: str
-    availability: bool = True
+    availabilities: Dict[str, Dict[str, bool]]
 
 class ChildAssistanceCreate(ChildAssistanceBase):
     pass
@@ -16,7 +16,7 @@ class ChildAssistanceCreate(ChildAssistanceBase):
 class ChildAssistanceUpdate(BaseModel):
     child_count: Optional[int] = None
     experience: Optional[str] = None
-    availability: Optional[bool] = None
+    availabilities: Dict[str, Dict[str, bool]]
 
 class ChildAssistanceResponse(ChildAssistanceBase):
     id: int

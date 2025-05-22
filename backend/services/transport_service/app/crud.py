@@ -25,7 +25,7 @@ def create_transport(db: Session, transport: TransportCreate):
         id_provider=transport.id_provider,
         vehicle_type=transport.vehicle_type,
         license_plate=transport.license_plate,
-        availability=transport.availability
+        availabilities=transport.availabilities
     )
     db.add(db_transport)
     db.commit()
@@ -51,3 +51,7 @@ def delete_transport(db: Session, transport_id: int):
         db.commit()
         return True
     return False
+
+def get_transports_by_provider(db: Session, id_provider: int):
+    """Récupère une liste de transports d'un prestataire"""
+    return db.query(Transport).filter(Transport.id_provider == id_provider).all()

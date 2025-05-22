@@ -80,9 +80,44 @@ async def read_provider(provider_id: int, db: Session = Depends(get_db)):
         longitude=prov.longitude,
         created_at=prov.created_at,
         updated_at=prov.updated_at,
+        name=prov.name,
+        description=prov.description,
+        short_description=prov.short_description,
         user=user_data
     )
 
+@router.get(
+    "/providers/user/{user_id}",
+    response_model=ProviderResponse,
+    summary="Récupère le prestataire associé à un user_id"
+)
+async def read_provider_by_user(
+        user_id: int,
+        db: Session = Depends(get_db)
+):
+    # 1) récupère le Provider en base
+    prov = get_provider_by_user_id(db, id_user=user_id)
+    if not prov:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prestataire introuvable pour cet utilisateur"
+        )
+    # 2) enrichit avec les données utilisateur
+    user_data = await fetch_user(prov.id_user)
+    # 3) construit et renvoie le ProviderResponse
+    return ProviderResponse(
+        id=prov.id,
+        id_user=prov.id_user,
+        type=prov.type,
+        latitude=prov.latitude,
+        longitude=prov.longitude,
+        created_at=prov.created_at,
+        updated_at=prov.updated_at,
+        name=prov.name,
+        description=prov.description,
+        short_description=prov.short_description,
+        user=user_data
+    )
 
 @router.patch("/providers/{provider_id}", response_model=ProviderResponse)
 async def update_provider_info(provider_id: int, provider_data: ProviderUpdate, db: Session = Depends(get_db)):
@@ -139,6 +174,9 @@ async def read_providers_by_type(
             longitude=prov.longitude,
             created_at=prov.created_at,
             updated_at=prov.updated_at,
+            name=prov.name,
+            description=prov.description,
+            short_description=prov.short_description,
             user=user
         )
 

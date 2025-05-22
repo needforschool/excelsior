@@ -5,6 +5,8 @@ from typing import Optional, List
 # OrderService schemas
 class OrderBase(BaseModel):
     id_user: int
+    service_type: str
+    id_service: int
     id_provider: int
     status: str = "en cours"
     latitude: Optional[float] = None
@@ -19,6 +21,7 @@ class OrderBase(BaseModel):
 
 class OrderCreate(OrderBase):
     pass
+
 
 class OrderUpdate(BaseModel):
     status: Optional[str] = None

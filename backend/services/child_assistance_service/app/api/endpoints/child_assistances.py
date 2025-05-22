@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas import ChildAssistanceCreate, ChildAssistanceResponse, ChildAssistanceUpdate
-from app.crud import get_child_assistance, get_child_assistances, get_child_assistance_by_order, create_child_assistance, update_child_assistance, delete_child_assistance
+from app.crud import get_child_assistance, get_child_assistances, get_child_assistance_by_order, create_child_assistance, update_child_assistance, delete_child_assistance, get_child_assistance_by_provider
 from app.database import get_db
 
 router = APIRouter()
@@ -16,6 +16,13 @@ def create_new_child_assistance(child_assistance: ChildAssistanceCreate, db: Ses
 def read_child_assistances(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     child_assistances = get_child_assistances(db, skip=skip, limit=limit)
     return child_assistances
+
+@router.get("/child-assistances/provider/{id_provider}", response_model=List[ChildAssistanceResponse])
+def get_provider_child_assistances(id_provider: int, db: Session = Depends(get_db)):
+    child_assistance = get_child_assistance_by_provider(db, id_provider=id_provider)
+    if child_assistance is None:
+        raise HTTPException(status_code=404, detail="Aucun service de garde d'enfant trouvé pour ce fournisseur")
+    return child_assistance
 
 @router.get("/child-assistances/{child_assistance_id}", response_model=ChildAssistanceResponse)
 def read_child_assistance(child_assistance_id: int, db: Session = Depends(get_db)):

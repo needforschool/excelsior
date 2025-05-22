@@ -6,12 +6,14 @@ from jose import JWTError, jwt
 from typing import List
 
 from app.schemas import UserCreate, UserResponse, Token, TokenData, ForgotPasswordRequest, ContactRequest
-from app.crud import get_user, get_user_by_email, get_users, create_user, authenticate_user
+from app.crud import get_user, get_user_by_email, get_users, create_user, authenticate_user, verify_password, update_user
 from app.database import get_db
 from app.email_utils import send_email
 import secrets
 import os
 from dotenv import load_dotenv
+from app.schemas import ChangePassword
+
 
 # Configuration de l'authentification
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"  # À remplacer par une clé sécurisée en production
@@ -108,7 +110,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
-    return db_user
+    return user
 
 @router.post("/users/forgot-password")
 def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
@@ -159,3 +161,26 @@ def contact(request: ContactRequest):
     send_email(subject, body, to_email=admin_email, smtp_server=os.getenv('SMTP_SERVER', 'localhost'), smtp_port=int(os.getenv('SMTP_PORT', 25)), smtp_user=os.getenv('SMTP_USER'), smtp_password=os.getenv('SMTP_PASSWORD'), html_body=html_body)
     return {"message": "Votre message a été reçu. Nous vous contacterons bientôt."}
 
+
+
+@router.post("/users/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+        payload: ChangePassword,
+        db: Session = Depends(get_db),
+        current_user = Depends(get_current_user),
+):
+    # Vérification de l'ancien mot de passe
+    if not verify_password(payload.old_password, current_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Ancien mot de passe incorrect"
+        )
+
+    # On délègue le hachage et la mise à jour à votre CRUD
+    update_user(
+        db,
+        user_id = current_user.id,
+        user_data = {"password": payload.new_password}
+    )
+    # 204 No Content → pas de corps de réponse
+    return

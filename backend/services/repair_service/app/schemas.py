@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
-
+from sqlalchemy.dialects.postgresql import JSONB
+from typing import Dict
 # RepairService schemas
 class RepairBase(BaseModel):
-    id_order: int
+
     id_provider: int
     issue_type: str
     expertise_level: str
-    availability: bool = True
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('issue_type')
     def validate_issue_type(cls, v):
@@ -23,7 +24,7 @@ class RepairCreate(RepairBase):
 class RepairUpdate(BaseModel):
     issue_type: Optional[str] = None
     expertise_level: Optional[str] = None
-    availability: Optional[bool] = None
+    availabilities: Dict[str, Dict[str, bool]]
 
     @validator('issue_type')
     def validate_issue_type(cls, v):

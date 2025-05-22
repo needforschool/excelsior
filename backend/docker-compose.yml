@@ -9,11 +9,23 @@ services:
       - provider_db
       - user_service
       - provider_service
+      - transport_db
+      - transport_service
+      - moving_db
+      - moving_service
+      - cleaning_db
+      - cleaning_service
+      - repair_db
+      - repair_service
     # (et tous les autres services si vous seed leurs tables)
     environment:
-      USER_DB_URL: "postgresql://postgres:postgres@user_db:5432/user_service"
-      PROVIDER_DB_URL: "postgresql://postgres:postgres@provider_db:5432/provider_service"
-      # pas de volumes supplémentaires
+        USER_DB_URL: "postgresql://postgres:postgres@user_db:5432/user_service"
+        PROVIDER_DB_URL: "postgresql://postgres:postgres@provider_db:5432/provider_service"
+        TRANSPORT_DB_URL: "postgresql://postgres:postgres@transport_db:5432/transport_service"
+        MOVING_DB_URL: "postgresql://postgres:postgres@moving_db:5432/moving_service"
+        CLEANING_DB_URL: "postgresql://postgres:postgres@cleaning_db:5432/cleaning_service"
+        REPAIR_DB_URL: "postgresql://postgres:postgres@repair_db:5432/repair_service"
+        CHILD_ASSISTANCE_DB_URL: "postgresql://postgres:postgres@child_assistance_db:5432/child_assistance_service"
   api_gateway:
     build: 
       context: ./api_gateway
@@ -96,6 +108,8 @@ services:
       - SERVICE_PORT=8003
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - TOKEN_TYPE=${TOKEN_TYPE}
+      - STRIPE_SECRET_KEY=SECRET
+      - STRIPE_PUBLISHABLE_KEY=SECRET
 
   # Notification Service
   notification_service:

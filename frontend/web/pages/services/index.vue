@@ -84,9 +84,11 @@
           <p class="mb-4 text-muted-foreground">
             Rejoignez notre réseau de prestataires et augmentez vos revenus en proposant vos services à des milliers de clients potentiels.
           </p>
-          <Button variant="outline" as="NuxtLink" to="/become-provider">
-            En savoir plus
-          </Button>
+          <NuxtLink to="/become-provider">
+            <Button variant="outline">
+              En savoir plus
+            </Button>
+          </NuxtLink>
         </div>
         <div class="p-5 rounded-lg shadow-sm bg-card">
           <h3 class="mb-2 font-semibold">Les avantages</h3>

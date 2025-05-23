@@ -78,16 +78,8 @@
       
       <!-- Détails spécifiques du service -->
       <div v-if="order" class="lg:col-span-3">
-        <component 
-          :is="serviceComponent" 
-          v-if="serviceComponent"
-          :transport="serviceDetails.serviceType === 'transport' ? serviceDetails : null"
-          :cleaning="serviceDetails.serviceType === 'nettoyage' ? serviceDetails : null"
-          :moving="serviceDetails.serviceType === 'déménagement' ? serviceDetails : null"
-          :repair="serviceDetails.serviceType === 'dépannage' ? serviceDetails : null"
-          :child-assistance="serviceDetails.serviceType === 'garde enfant' ? serviceDetails : null"
-          :loading="serviceDetails.loading"
-          :error="serviceDetails.error"
+        <ServiceDetails 
+          :order="order"
           @contact="contactServiceProvider"
         />
       </div>
@@ -146,24 +138,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { useOrder } from '~/composables/order'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useAuthStore } from '~/stores/auth'
-import { useServiceDetails } from '~/composables/serviceDetails'
+import ServiceDetails from '~/components/ServiceDetails.vue'
 import { 
   LucideLoader,
   LucidePackageX
 } from 'lucide-vue-next'
-
-// Importation dynamique des composants de détail de service
-const TransportDetails = defineAsyncComponent(() => import('~/components/TransportDetails.vue'))
-const CleaningDetails = defineAsyncComponent(() => import('~/components/CleaningDetails.vue'))
-const MovingDetails = defineAsyncComponent(() => import('~/components/MovingDetails.vue'))
-const RepairDetails = defineAsyncComponent(() => import('~/components/RepairDetails.vue'))
-const ChildAssistanceDetails = defineAsyncComponent(() => import('~/components/ChildAssistanceDetails.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -199,41 +184,6 @@ const cancelModal = ref({
 
 const contactModal = ref({
   show: false
-})
-
-// Détails spécifiques au service
-const serviceDetails = computed(() => {
-  if (!order.value) return { serviceDetails: null, loading: false, error: null, serviceType: null }
-  
-  const { serviceDetails, loading, error, getServiceComponent } = useServiceDetails(orderId, order.value.service_type)
-  
-  return {
-    serviceDetails,
-    loading,
-    error,
-    serviceType: order.value.service_type,
-    componentName: getServiceComponent()
-  }
-})
-
-// Composant à afficher pour les détails du service
-const serviceComponent = computed(() => {
-  if (!serviceDetails.value || !serviceDetails.value.componentName) return null
-  
-  switch (serviceDetails.value.componentName) {
-    case 'TransportDetails':
-      return TransportDetails
-    case 'CleaningDetails':
-      return CleaningDetails
-    case 'MovingDetails':
-      return MovingDetails
-    case 'RepairDetails':
-      return RepairDetails
-    case 'ChildAssistanceDetails':
-      return ChildAssistanceDetails
-    default:
-      return null
-  }
 })
 
 // Formatter le type de service

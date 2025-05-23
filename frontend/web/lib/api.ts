@@ -1,7 +1,7 @@
 // Service API pour gérer les appels au backend
 import { useAuthStore } from '~/stores/auth'
 
-const API_URL = process.env.API_URL || 'http://localhost:8080/api'
+const API_URL = process.env.API_URL || 'http://localhost:8080'
 
 export interface ApiResponse<T> {
   data: T | null

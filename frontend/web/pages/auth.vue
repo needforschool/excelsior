@@ -11,10 +11,21 @@
         
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div v-if="isRegistering" class="space-y-2">
-            <Label for="name">Nom complet</Label>
+            <Label for="firstName">Prénom</Label>
             <Input 
-              id="name" 
-              v-model="form.name" 
+              id="firstName" 
+              v-model="form.firstName" 
+              placeholder="Votre prénom"
+              required
+              :disabled="authStore.loading"
+            />
+          </div>
+
+          <div v-if="isRegistering" class="space-y-2">
+            <Label for="lastName">Nom</Label>
+            <Input 
+              id="lastName" 
+              v-model="form.lastName" 
               placeholder="Votre nom"
               required
               :disabled="authStore.loading"
@@ -94,7 +105,8 @@ const authStore = useAuthStore()
 const isRegistering = ref(false)
 
 const form = ref({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   password: '',
   role: 'client'
@@ -116,7 +128,8 @@ const redirectUrl = ref('/dashboard')
 const toggleAuthMode = () => {
   isRegistering.value = !isRegistering.value
   // Réinitialiser le formulaire lors du changement de mode
-  form.value.name = ''
+  form.value.firstName = ''
+  form.value.lastName = ''
   form.value.email = ''
   form.value.password = ''
   form.value.role = 'client'
@@ -128,7 +141,8 @@ const handleSubmit = async () => {
   if (isRegistering.value) {
     // Inscription
     success = await authStore.register(
-      form.value.name,
+      form.value.firstName,
+      form.value.lastName,
       form.value.email,
       form.value.password,
       form.value.role

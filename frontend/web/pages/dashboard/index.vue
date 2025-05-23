@@ -77,9 +77,11 @@
                       :class="getStatusClass(order.status)">
                   {{ order.status }}
                 </span>
-                <Button variant="ghost" size="sm" as="NuxtLink" :to="`/orders/${order.id}`">
-                  <LucideArrowRight class="w-4 h-4" />
-                </Button>
+                <NuxtLink :to="`/orders/${order.id}`">
+                  <Button variant="ghost" size="sm">
+                    <LucideArrowRight class="w-4 h-4" />
+                  </Button>
+                </NuxtLink>
               </div>
             </div>
             
@@ -95,22 +97,30 @@
         <div class="p-5 rounded-lg shadow-sm bg-card">
           <h2 class="mb-4 text-lg font-bold">Actions rapides</h2>
           <div class="space-y-3">
-            <Button class="justify-start w-full" variant="outline" as="NuxtLink" to="/services">
-              <LucidePlusCircle class="w-4 h-4 mr-2" />
-              Nouvelle commande
-            </Button>
-            <Button class="justify-start w-full" variant="outline" as="NuxtLink" to="/profile">
-              <LucideUser class="w-4 h-4 mr-2" />
-              Modifier profil
-            </Button>
-            <Button class="justify-start w-full" variant="outline" as="NuxtLink" to="/payments">
-              <LucideCreditCard class="w-4 h-4 mr-2" />
-              Gérer paiements
-            </Button>
-            <Button class="justify-start w-full" variant="outline" as="NuxtLink" to="/support">
-              <LucideHelpCircle class="w-4 h-4 mr-2" />
-              Besoin d'aide
-            </Button>
+            <NuxtLink to="/services">
+              <Button class="justify-start w-full" variant="outline">
+                <LucidePlusCircle class="w-4 h-4 mr-2" />
+                Nouvelle commande
+              </Button>
+            </NuxtLink>
+            <NuxtLink to="/profile">
+              <Button class="justify-start w-full" variant="outline">
+                <LucideUser class="w-4 h-4 mr-2" />
+                Modifier profil
+              </Button>
+            </NuxtLink>
+            <NuxtLink to="/payments">
+              <Button class="justify-start w-full" variant="outline">
+                <LucideCreditCard class="w-4 h-4 mr-2" />
+                Gérer paiements
+              </Button>
+            </NuxtLink>
+            <NuxtLink to="/support">
+              <Button class="justify-start w-full" variant="outline">
+                <LucideHelpCircle class="w-4 h-4 mr-2" />
+                Besoin d'aide
+              </Button>
+            </NuxtLink>
           </div>
         </div>
         
@@ -126,8 +136,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { useAuthStore } from '~/stores/auth'
 import { 
   LucidePackage,
   LucideCheckCircle,
@@ -143,6 +156,40 @@ import {
   LucideWrench,
   LucideUsers
 } from 'lucide-vue-next'
+
+const router = useRouter()
+const { toast } = useToast()
+const authStore = useAuthStore()
+
+// Vérification de l'authentification et redirection selon le rôle
+onMounted(() => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentification requise",
+      description: "Vous devez être connecté pour accéder au tableau de bord",
+      variant: "destructive",
+    })
+    router.push('/auth?redirect=/dashboard')
+    return
+  }
+  
+  // Rediriger les prestataires vers leur dashboard spécifique
+  if (authStore.isProvider) {
+    router.push('/dashboard/provider')
+    return
+  }
+  
+  // Vérifier que c'est bien un client
+  if (!authStore.isClient) {
+    toast({
+      title: "Accès refusé",
+      description: "Ce tableau de bord est réservé aux clients",
+      variant: "destructive",
+    })
+    router.push('/')
+    return
+  }
+})
 
 // Données simulées de statistiques
 const stats = ref({

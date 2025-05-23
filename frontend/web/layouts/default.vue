@@ -205,13 +205,11 @@ const mobileMenuOpen = ref(false)
 
 // Calcul des initiales de l'utilisateur avec vérification supplémentaire
 const userInitials = computed(() => {
-  // Vérifiez si l'utilisateur et son nom existent
-  if (!authStore.user || !authStore.user.name) return ''
+  // Vérifiez si l'utilisateur et ses noms existent
+  if (!authStore.user || !authStore.user.firstName) return ''
   
-  const nameParts = authStore.user.name.split(' ')
-  const firstInitial = nameParts[0] ? nameParts[0][0] : ''
-  const lastNamePart = nameParts[1]
-  const lastInitial = lastNamePart ? lastNamePart[0] : ''
+  const firstInitial = authStore.user.firstName ? authStore.user.firstName[0] : ''
+  const lastInitial = authStore.user.lastName ? authStore.user.lastName[0] : ''
   
   return (firstInitial + lastInitial).toUpperCase()
 })

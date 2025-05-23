@@ -130,10 +130,12 @@
             <div class="p-5">
               <h3 class="mb-2 text-lg font-semibold">Transport et Livraison</h3>
               <p class="mb-4 text-sm text-muted-foreground">Livraison express de vos colis en 1h ou moins. Service disponible 7j/7.</p>
-              <Button as="NuxtLink" to="/services?category=transport" variant="outline" class="w-full">
-                <LucideArrowRight class="w-4 h-4 mr-2" />
-                Découvrir
-              </Button>
+              <NuxtLink to="/services?category=transport">
+                <Button variant="outline" class="w-full">
+                  <LucideArrowRight class="w-4 h-4 mr-2" />
+                  Découvrir
+                </Button>
+              </NuxtLink>
             </div>
           </div>
           
@@ -147,10 +149,12 @@
             <div class="p-5">
               <h3 class="mb-2 text-lg font-semibold">Nettoyage Véhicule</h3>
               <p class="mb-4 text-sm text-muted-foreground">Service complet de nettoyage de votre véhicule, à domicile ou au travail.</p>
-              <Button as="NuxtLink" to="/services?category=cleaning" variant="outline" class="w-full">
-                <LucideArrowRight class="w-4 h-4 mr-2" />
-                Découvrir
-              </Button>
+              <NuxtLink to="/services?category=cleaning">
+                <Button variant="outline" class="w-full">
+                  <LucideArrowRight class="w-4 h-4 mr-2" />
+                  Découvrir
+                </Button>
+              </NuxtLink>
             </div>
           </div>
           
@@ -164,18 +168,22 @@
             <div class="p-5">
               <h3 class="mb-2 text-lg font-semibold">Déménagement</h3>
               <p class="mb-4 text-sm text-muted-foreground">Service de déménagement pour petits volumes, rapide et sans tracas.</p>
-              <Button as="NuxtLink" to="/services?category=moving" variant="outline" class="w-full">
-                <LucideArrowRight class="w-4 h-4 mr-2" />
-                Découvrir
-              </Button>
+              <NuxtLink to="/services?category=moving">
+                <Button variant="outline" class="w-full">
+                  <LucideArrowRight class="w-4 h-4 mr-2" />
+                  Découvrir
+                </Button>
+              </NuxtLink>
             </div>
           </div>
         </div>
         
         <div class="mt-12 text-center">
-          <Button as="NuxtLink" to="/services" size="lg">
-            Voir tous nos services
-          </Button>
+          <NuxtLink to="/services">
+            <Button size="lg">
+              Voir tous nos services
+            </Button>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -283,9 +291,11 @@
         </div>
         
         <div class="mt-12 text-center">
-          <Button as="NuxtLink" to="/faq" variant="outline" size="lg">
-            Voir toutes les FAQ
-          </Button>
+          <NuxtLink to="/faq">
+            <Button variant="outline" size="lg">
+              Voir toutes les FAQ
+            </Button>
+          </NuxtLink>
         </div>
       </div>
     </section>

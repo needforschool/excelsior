@@ -254,6 +254,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -272,9 +273,26 @@ import {
 import { useAuthStore } from '~/stores/auth'
 import { useUserService } from '~/services/user'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const userService = useUserService()
 const { toast } = useToast()
+
+// Vérification de l'authentification
+onMounted(() => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentification requise",
+      description: "Vous devez être connecté pour accéder à votre profil",
+      variant: "destructive",
+    })
+    router.push('/auth?redirect=/profile')
+    return
+  }
+  
+  // Charger les données du profil seulement si authentifié
+  fetchCurrentUser()
+})
 
 // État pour le chargement et l'erreur
 const loading = ref(false)
@@ -480,9 +498,4 @@ const deleteAccount = async () => {
     showDeleteAccountModal.value = false
   }
 }
-
-// Charger les données au montage du composant
-onMounted(() => {
-  fetchCurrentUser()
-})
 </script>

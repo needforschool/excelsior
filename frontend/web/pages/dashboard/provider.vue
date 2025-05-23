@@ -233,12 +233,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
+import { useAuthStore } from '~/stores/auth'
 import { 
   LucidePackage,
   LucideCheckCircle,
@@ -257,7 +259,39 @@ import {
   LucideUsers
 } from 'lucide-vue-next'
 
+const router = useRouter()
 const { toast } = useToast()
+const authStore = useAuthStore()
+
+// Vérification de l'authentification et du rôle prestataire
+onMounted(() => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentification requise",
+      description: "Vous devez être connecté pour accéder au tableau de bord prestataire",
+      variant: "destructive",
+    })
+    router.push('/auth?redirect=/dashboard/provider')
+    return
+  }
+  
+  // Rediriger les clients vers leur dashboard
+  if (authStore.isClient) {
+    router.push('/dashboard')
+    return
+  }
+  
+  // Vérifier que c'est bien un prestataire
+  if (!authStore.isProvider) {
+    toast({
+      title: "Accès refusé",
+      description: "Ce tableau de bord est réservé aux prestataires",
+      variant: "destructive",
+    })
+    router.push('/')
+    return
+  }
+})
 
 // Données simulées de statistiques
 const stats = ref({
